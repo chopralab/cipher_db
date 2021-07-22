@@ -1,16 +1,50 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Login</title>
+        <title>Cipher Login</title>
     </head>
+    <style>
+        #title {
+            text-align: center;
+        }
+        .button {
+            background-color: #ceb10c8a; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            border-bottom-left-radius: 7px;
+            border-bottom-right-radius: 7px;
+        }.login_group {
+            text-align: center;
+            display: inline-block;
+            position: absolute;
+            width:  100%;
+        }
+        .text {
+            height: 20px;
+            width: 20%;
+            margin: 10px;
+        }
+        label {
+            font-size: 16px;
+        }
+    </style>
     <body>
-        <h3>Login to the Cipher Database</h3>
-        <form id='login' method='POST' action=''>
-            <label for='username'>Username</label>
-            <input type='text' id='username' name='username'><br><br>
-            <label for='password'>Password</label>
-            <input type='password' id='password' name='password'><br><br>
-            <input type='submit' value="Submit">
-        </form>
+        <h1 id="title">Login to the Cipher Database</h3>
+        <div class="login_group">
+            <form id='login' method='POST' action=''>
+                <label for='username'>Username</label>
+                <input class="text" type='text' id='username' name='username'><br><br>
+                <label for='password'>Password</label>
+                <input class="text" type='password' id='password' name='password'><br><br>
+                <input class="button" id="submit" type='submit' value="Submit">
+            </form>
+        </div>
     </body>
 </html>

@@ -12,14 +12,17 @@ import json
 import logging
 import ssl
 
+# Uncomment this for logging
+# logging.basicConfig(filename='logs/restful.log', level=logging.DEBUG)
+
 app = Flask(__name__)
 
 # Add this when we deploy to a domain with a SSL certificate
 # sslify = SSLify(app)
 
-#login_manager = LoginManager()
-#login_manager.init_app(app)
-#login_manager.login_view = 'login'
+# login_manager = LoginManager()
+# login_manager.init_app(app)
+# login_manager.login_view = 'login'
 
 login = open('login.txt','r')
 username = login.readline().replace('\n','')
@@ -45,6 +48,7 @@ def index():
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
+# Route to the login page
 @app.route('/login/', methods=['GET','POST'])
 def login():
     if request.method == 'GET':
@@ -52,17 +56,42 @@ def login():
     elif request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        return redirect('/')
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
+# Route to the RESTful API instruction page
 @app.route('/rest/')
 def rest():
     return render_template('rest.html'), 200
 
-@app.route('/gui/')
-def gui():
-    # We can load this as a preformatted .html file later on
-    return "<p>Welcome to the GUI ... </br> This feature is currently under construction</p>", 200
+# Route to the GUI
+@app.route('/gui/', methods=['GET','POST'], defaults={'info':None})
+@app.route('/gui/<info>/', methods=['GET','POST'])
+def gui(info):
+    if request.method == 'GET':
+        # We can load this as a django webapp later on
+        return render_template('gui.html'), 200
+    elif request.method == 'POST':
+        form = request.form
+        if "home" in form:
+            return redirect("/")
+        collection = form['coll']
+        input_type = form['input']
+        input_value = form['value']
+        output_type = form['output']
+        print(collection)
+        print(input_type)
+        print(input_value)
+        print(output_type)
+        params = "?"+"coll="+collection+"&input_type="+input_type+"&input_value="+input_value+"&output_type="+output_type
+        return redirect('/gui/'+params)
+    else:
+        return "<pre>" + "Request method not supported" + "</pre>", 400
+
+@app.route('/gui/info/')
+def gui_info():
+    return render_template('gui_info.html'), 200
 
 # Keywords
 # all --> refers to all dataset information for a specific compound (used with dataset)
@@ -284,6 +313,21 @@ def clinical(input_type,input,dataset,data_type,output_type):
 @app.route('/rest/animal/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
 @app.route('/rest/animal/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
 def animal(input_type,input,dataset,data_type,output_type):
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'PUT':
+        pass
+    elif request.method == 'DELETE':
+        pass
+    else:
+        pass
+
+# RESTful API URL structure for access to the machine learning (ML) data collection
+@app.route('/rest/ml/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
+@app.route('/rest/ml/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+def ml(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
         pass
     elif request.method == 'POST':

@@ -4,8 +4,17 @@
         <title>Cipher Database</title>
     </head>
     <style>
-        button {
-            background-color: #4CAF50; /* Green */
+        #title {
+            text-align: center;
+        }
+        .button_group {
+            text-align: center;
+            display: inline-block;
+            position: absolute;
+            width:  100%;
+        }
+        .button {
+            background-color: #ceb10c8a; /* Green */
             border: none;
             color: white;
             padding: 15px 32px;
@@ -13,18 +22,49 @@
             text-decoration: none;
             display: inline-block;
             font-size: 16px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            border-bottom-left-radius: 7px;
+            border-bottom-right-radius: 7px;
+        }
+        #gui {
+            margin: 10px;
+        }
+        #api {
+            margin: 10px;
+        }
+        #login {
+            margin: 10px;
+        }
+        #image_span {
+            display: inline-block
+        }
+        #cipher {
+            zoom: 0.05;
+            margin: 10px;
+        }
+        #github {
+            margin: 10px;
         }
     </style>
     <body>
-        <h3>Welcome to the Cipher Database</h3>
-        <form action="" method="POST">
-            <button name='gui' value="gui">GUI</button>
-        </form>
-        <form action="" method="POST">
-            <button name='api' value="api">RESTful API</button>
-        </form>
-        <form action="" method="POST">
-            <button name='login' value="login">Login</button>
-        </form>
+        <h1 id="title">Welcome to the Cipher Database</h1>
+        <div class="button_group">
+            <form action="" method="POST">
+                <button class="button "id="gui" name="gui" value="gui">GUI</button>
+            </form>
+            <form action="" method="POST">
+                <button class="button" id="api" name="api" value="api">RESTful API</button>
+            </form>
+            <form action="" method="POST">
+                <button class="button" id="login" name="login" value="login">Login</button>
+            </form>
+            <figure id="image_span">
+                <img id="cipher" src="static/images/cipher_monochrome.png">
+                <a href="https://github.com/chopralab/cipher_db">
+                    <img id="github" src="static/images/GitHub-Mark-64px.png">
+                </a>
+            </figure>
+        </div>
     </body>
 </html>

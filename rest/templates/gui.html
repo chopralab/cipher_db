@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <title>Cipher GUI</title>
+    <style>
+        .selection { 
+            display: inline-block;
+            border:2px solid #ccc; 
+            width:500px; 
+            height: 500px; 
+            overflow-y: scroll; 
+        }
+        .display {
+            display: inline-block;
+        }
+        .button {
+            background-color: #ceb10c8a; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            border-bottom-left-radius: 7px;
+            border-bottom-right-radius: 7px;
+            margin-left: 7px;
+            margin-top: 20px;
+        }
+        .radio_text {
+            margin-right: 20px;
+        }
+        .sele_title {
+            margin-left: 7px;
+        }
+        #value {
+            margin-left: 7px;
+            width: 60%;
+        }
+        iframe {
+            width: 800px;
+            height: 500px;
+        }
+        figure {
+            display: inline-block;
+            margin-left: 300px;
+        }
+        #cipher {
+            zoom: 0.05;
+        }
+    </style>
+    <body>
+        <div class="selection">
+            <form id='data' method="POST" action="">
+                <h3 class="sele_title">Collection</h3>
+                <input type="radio" class="radio" id="general" name="coll" value="general" /> <span class="radio_text">General</span>
+                <input type="radio" class="radio" id="properties" name="coll" value="properties"/> <span class="radio_text">Properties</span>
+                <input type="radio" class="radio" id="binding" name="coll" value="binding"/> <span class="radio_text">Binding</span>
+                <input type="radio" class="radio" id="reactivity" name="coll" value="reactivity"/> <span class="radio_text">Reactivity</span>
+                <br>
+                <input type="radio" class="radio" id="spectra" name="coll" value="spectra"/> <span class="radio_text">Spectra</span>
+                <input type="radio" class="radio" id="clinical" name="select" value="clinical"/> <span class="radio_text">Clinical</span>
+                <input type="radio" class="radio" id="animal" name="select" value="animal"/> <span class="radio_text">Animal</span>
+                <input type="radio" class="radio" id="ml" name="select" value="ml"/> <span class="radio_text">Machine Learning</span>
+                <h3 class="sele_title">Input Type</h3>
+                <input type="radio" class="radio" id="name" name="input" value="name" /> <span class="radio_text">Name</span>
+                <input type="radio" class="radio" id="smiles" name="input" value="smiles"/> <span class="radio_text">SMILES</span>
+                <input type="radio" class="radio" id="inchi" name="input" value="inchi"/> <span class="radio_text">InChi</span>
+                <input type="radio" class="radio" id="key" name="input" value="key"/> <span class="radio_text">InChi Key</span>
+                <h3 class="sele_title">Input Value</h3>
+                <input class="text" type='text' id='value' name='value'>
+                <h3 class="sele_title">Output Type</h3>
+                <input type="radio" class="radio" id="general" name="output" value="txt" /> <span class="radio_text">Text</span>
+                <input type="radio" class="radio" id="properties" name="output" value="csv"/> <span class="radio_text">CSV</span>
+                <input type="radio" class="radio" id="binding" name="output" value="json"/> <span class="radio_text">JSON</span>
+                <br>
+                <input class="button" id="submit" type='submit' value="Submit">
+                <br>
+                <button class="button "id="home" name="home" value="home">Home</button>
+            </form>
+        </div>
+        <div class="display">
+            <iframe id="frame" src="/gui/info/"></iframe>
+        </div>
+    </body>
+    <script language="javascript">
+        function getUrlVars() {
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+                vars[key] = value;
+            });
+            return vars;
+        }
+        function change_src() {
+            var collection = getUrlVars()["coll"];
+            var input_type = getUrlVars()["input_type"];
+            var input_value = getUrlVars()["input_value"];
+            var output_type = getUrlVars()["output_type"];
+            console.log(collection)
+            console.log(input_type)
+            console.log(input_value)
+            console.log(output_type)
+            var new_url = "/rest/"+collection+"/"+input_type+"/"+input_value+"/summary/"+output_type;
+            console.log(new_url)
+            document.getElementById("frame").src=new_url;
+        }
+        if (window.location.href.includes("coll=")) {
+            window.onload = change_src();
+            document.getElementsByClassName("sele_title").innerHTML = "header";
+        }
+    </script>
+</html>
