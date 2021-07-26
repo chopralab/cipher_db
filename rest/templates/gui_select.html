@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <title>GUI Select</title>
+    <style>
+        h1 {
+            text-align: center;
+        }
+        .button {
+            background-color: #ceb10c8a; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-top-left-radius: 7px;
+            border-top-right-radius: 7px;
+            border-bottom-left-radius: 7px;
+            border-bottom-right-radius: 7px;
+            margin-left: 7px;
+            margin-top: 20px;
+        }
+        .button_group {
+            text-align: center;
+            display: inline-block;
+            position: absolute;
+            width:  100%;
+        }
+    </style>
+    <body>
+        <h1>Select GUI Functionality</h1>
+        <div class="button_group">
+            <form id='data' method="POST" action="">
+                <button class="button "id="search" name="search" value="search">Search</button>
+                <br>
+                <button class="button "id="add" name="add" value="add">Add</button>
+                <br>
+                <button class="button "id="update" name="update" value="update">Update</button>
+            </form>
+        </div>
+        
+    </body>
+</html>

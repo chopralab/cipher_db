@@ -1,4 +1,5 @@
 # Import statements
+from types import MethodDescriptorType, MethodType
 from flask import Flask, jsonify, request, render_template, redirect
 from flask.wrappers import Request
 from flask_api import status
@@ -15,18 +16,23 @@ import ssl
 # Uncomment this for logging
 # logging.basicConfig(filename='logs/restful.log', level=logging.DEBUG)
 
+# Initalize the flask application
 app = Flask(__name__)
 
 # Add this when we deploy to a domain with a SSL certificate
 # sslify = SSLify(app)
 
+# Initilize the Login Manager
 # login_manager = LoginManager()
 # login_manager.init_app(app)
 # login_manager.login_view = 'login'
 
+# Access database login information (not added to GitHub Repo)
 login = open('login.txt','r')
 username = login.readline().replace('\n','')
 password = login.readline().replace('\n','')
+
+# Login to the database and configure the flask application
 mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
 app.config['MONGO_URI'] = mongo_login
 client = PyMongo(app)
@@ -65,13 +71,34 @@ def login():
 def rest():
     return render_template('rest.html'), 200
 
-# Route to the GUI
-@app.route('/gui/', methods=['GET','POST'], defaults={'info':None})
-@app.route('/gui/<info>/', methods=['GET','POST'])
-def gui(info):
+# ------------------------------------------------------
+# ---------------------- GUI ---------------------------
+# ------------------------------------------------------
+
+# Route to the GUI selection pannel
+@app.route('/gui/', methods=['GET','POST'])
+def gui_select():
+    if request.method == 'GET':
+        return render_template('gui_select.html'), 200
+    elif request.method == 'POST':
+        if "search" in request.form:
+            return redirect('/gui/search/')
+        elif "add" in request.form:
+            return redirect('/gui/add/')
+        elif "update" in request.form:
+            return redirect("/gui/update/")
+        else:
+            return redirect("/")
+    else:
+        return "<pre>" + "Request method not supported" + "</pre>", 400
+
+# Route to the GUI search engine
+@app.route('/gui/search/', methods=['GET','POST'], defaults={'info':None})
+@app.route('/gui/search/<info>/', methods=['GET','POST'])
+def gui_search(info):
     if request.method == 'GET':
         # We can load this as a django webapp later on
-        return render_template('gui.html'), 200
+        return render_template('gui_search.html'), 200
     elif request.method == 'POST':
         form = request.form
         if "home" in form:
@@ -80,23 +107,47 @@ def gui(info):
         input_type = form['input']
         input_value = form['value']
         output_type = form['output']
-        print(collection)
-        print(input_type)
-        print(input_value)
-        print(output_type)
         params = "?"+"coll="+collection+"&input_type="+input_type+"&input_value="+input_value+"&output_type="+output_type
-        return redirect('/gui/'+params)
+        return redirect('/gui/search/'+params)
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
+# Route to the GUI pannel for adding information to the database
+@app.route('/gui/add/', methods=['GET','POST'], defaults={'info':None})
+@app.route('/gui/add/<info>/', methods=['GET','POST'])
+def gui_add(info):
+    if request.method == 'GET':
+        return render_template('gui_add.html')
+    else:
+        return "<pre>" + "Request method not supported" + "</pre>", 400
+
+# Route to the GUI pannel for updating information in the database
+@app.route('/gui/update/', methods=['GET','POST'], defaults={'info':None})
+@app.route('/gui/update/<info>/', methods=['GET','POST'])
+def gui_update(info):
+    if request.method == 'GET':
+        return render_template('gui_update.html')
+    else:
+        return "<pre>" + "Request method not supported" + "</pre>", 400
+
+# Route to GUI information pannel
 @app.route('/gui/info/')
 def gui_info():
-    return render_template('gui_info.html'), 200
+    if request.method == 'GET':
+        return render_template('gui_info.html'), 200
+    else:
+        return "<pre>" + "Request method not supported" + "</pre>", 400
+
+# -------------------------------------------------
+# ---- Query construction for the RESTful API -----
+# -------------------------------------------------
 
 # Keywords
 # all --> refers to all dataset information for a specific compound (used with dataset)
 # summary --> refers to all enteries for the selected dataset (used with data_type)
 
+
+# Construct a Mongo DB query to access specified information from the database
 def construct_query(collection,input_type,input):
     query = {}
 
@@ -113,6 +164,7 @@ def construct_query(collection,input_type,input):
 
     return query
 
+# Construct a Mongo DB projection to display specified information from the database
 def construct_projection(collection, dataset='all', data_type='summary'):
     projection = {'_id': False}
 
@@ -142,6 +194,7 @@ def construct_projection(collection, dataset='all', data_type='summary'):
     
     return projection
 
+# Format the database output for rendering to webpage frontend
 def format_output(cursor, output_type):
     if output_type == 'json':
         json = []
@@ -165,7 +218,12 @@ def format_output(cursor, output_type):
     else:
         print("Output type not supported ...")
         return "<pre>" + "Output type not supported ..." + "</pre>", 400
-    
+
+
+# -------------------------------------------
+# -------------- RESTful API ----------------
+# -------------------------------------------
+ 
 # RESTful API URL structure for access to the general data collection
 @app.route('/rest/general/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'data_type':None,'output_type':None})
 @app.route('/rest/general/<input_type>/<input>/<data_type>/<output_type>', methods=['GET'])
@@ -339,4 +397,6 @@ def ml(input_type,input,dataset,data_type,output_type):
     else:
         pass
 
-app.run()
+# Run the Flask Application
+if __name__ == "__main__":
+    app.run()
