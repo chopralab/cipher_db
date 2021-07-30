@@ -1,0 +1,9 @@
+/models/
+
+/utils/__pycache__/
+/utils/fpscores.pkl.gz
+/utils/sascorer.py
+/utils/standalone_model_numpy.py
+
+/rest/login.txt
+/triggers/login.txt
