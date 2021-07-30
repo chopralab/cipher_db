@@ -4,14 +4,19 @@ from flask import Flask, jsonify, request, render_template, redirect
 from flask.wrappers import Request
 from flask_api import status
 from flask_restful import Api
+from flask import Flask, request, render_template, redirect
 from flask_pymongo import PyMongo
 from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 from flask_sslify import SSLify
-from bson.json_util import default, dumps
-from pymongo import cursor
+from bson.json_util import dumps
+from flask_mongoengine import MongoEngine
 import json
 import logging
-import ssl
+import hashlib
+
+#------------------------------------------------------
+#--------------- Flask Initilization ------------------
+#------------------------------------------------------
 
 # Uncomment this for logging
 # logging.basicConfig(filename='logs/restful.log', level=logging.DEBUG)
@@ -19,23 +24,62 @@ import ssl
 # Initalize the flask application
 app = Flask(__name__)
 
+# Initilize the Secret Key
+key_file = open('utils/secret_key.txt', 'r')
+app.secret_key = key_file.readline().replace('\n','')
+key_file.close()
+
+# Set up Flask-Mongo DB connections
+login = open('utils/login.txt', 'r')
+username = login.readline().replace('\n','')
+password = login.readline().replace('\n','')
+login.close()
+mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
+app.config['MONGO_URI'] = mongo_login
+app.config['MONGODB_SETTINGS'] = {
+    'host': 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
+}
+
+# Initilize PyMongo
+client = PyMongo(app)
+
+# Initilize Mongo Engine
+db = MongoEngine()
+db.init_app(app)
+
 # Add this when we deploy to a domain with a SSL certificate
 # sslify = SSLify(app)
 
 # Initilize the Login Manager
-# login_manager = LoginManager()
-# login_manager.init_app(app)
-# login_manager.login_view = 'login'
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
-# Access database login information (not added to GitHub Repo)
-login = open('login.txt','r')
-username = login.readline().replace('\n','')
-password = login.readline().replace('\n','')
+# User class for Flask sessions
+class User(db.Document):
+    username = db.StringField()
+    password = db.StringField()
+    # Display username
+    def to_json(self):
+        return {"username": username}
+    # User is authenticated
+    def is_authenticated(self):
+        return True
+    # User is active
+    def is_active(self):
+        return True
+    # Get the users ID
+    def get_id(self):
+        return str(self.id)
 
-# Login to the database and configure the flask application
-mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
-app.config['MONGO_URI'] = mongo_login
-client = PyMongo(app)
+# Determine the current logged in user for a session
+@login_manager.user_loader
+def load_user(user_id):
+    return User.objects(id=user_id).first()
+
+#---------------------------------------------------
+#----------------- Website Backend -----------------
+#---------------------------------------------------
 
 # Route to index page
 @app.route('/', methods=['GET','POST'])
@@ -62,9 +106,26 @@ def login():
     elif request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        return redirect('/')
+        salt_file = open('utils/hash_salt.txt', 'r')
+        salt = salt_file.readline().replace('\n','')
+        key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000, dklen=128)
+        key = str(key)[2:-1]
+        user = User.objects(username=username,password=key).first()
+        if user:
+            login_user(user)
+            print("User Login: " + username)
+            return redirect("/")
+        else:
+            print("Login Failed with Username: " + username)
+            return redirect("/login/")
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
+
+@app.route('/logout/', methods=['GET','POST'])
+@login_required
+def logout():
+    logout_user()
+    return redirect('/')
 
 # Route to the RESTful API instruction page
 @app.route('/rest/')
@@ -77,6 +138,7 @@ def rest():
 
 # Route to the GUI selection pannel
 @app.route('/gui/', methods=['GET','POST'])
+@login_required
 def gui_select():
     if request.method == 'GET':
         return render_template('gui_select.html'), 200
@@ -95,6 +157,7 @@ def gui_select():
 # Route to the GUI search engine
 @app.route('/gui/search/', methods=['GET','POST'], defaults={'info':None})
 @app.route('/gui/search/<info>/', methods=['GET','POST'])
+@login_required
 def gui_search(info):
     if request.method == 'GET':
         # We can load this as a django webapp later on
@@ -115,6 +178,7 @@ def gui_search(info):
 # Route to the GUI pannel for adding information to the database
 @app.route('/gui/add/', methods=['GET','POST'], defaults={'info':None})
 @app.route('/gui/add/<info>/', methods=['GET','POST'])
+@login_required
 def gui_add(info):
     if request.method == 'GET':
         return render_template('gui_add.html')
@@ -124,6 +188,7 @@ def gui_add(info):
 # Route to the GUI pannel for updating information in the database
 @app.route('/gui/update/', methods=['GET','POST'], defaults={'info':None})
 @app.route('/gui/update/<info>/', methods=['GET','POST'])
+@login_required
 def gui_update(info):
     if request.method == 'GET':
         return render_template('gui_update.html')
@@ -132,6 +197,7 @@ def gui_update(info):
 
 # Route to GUI information pannel
 @app.route('/gui/info/')
+@login_required
 def gui_info():
     if request.method == 'GET':
         return render_template('gui_info.html'), 200
@@ -145,7 +211,6 @@ def gui_info():
 # Keywords
 # all --> refers to all dataset information for a specific compound (used with dataset)
 # summary --> refers to all enteries for the selected dataset (used with data_type)
-
 
 # Construct a Mongo DB query to access specified information from the database
 def construct_query(collection,input_type,input):
@@ -227,6 +292,7 @@ def format_output(cursor, output_type):
 # RESTful API URL structure for access to the general data collection
 @app.route('/rest/general/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'data_type':None,'output_type':None})
 @app.route('/rest/general/<input_type>/<input>/<data_type>/<output_type>', methods=['GET'])
+@login_required
 def general(input_type,input,data_type,output_type):
     if request.method == 'GET':
         query = construct_query('general',input_type,input)
@@ -289,6 +355,7 @@ def general(input_type,input,data_type,output_type):
 # RESTful API URL structure for access to the properties data collection
 @app.route('/rest/properties/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
 @app.route('/rest/properties/<input_type>/<input>/<dataset>/<data_type>/<output_type>', methods=['GET'])
+@login_required
 def properties(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
         query = construct_query('general',input_type,input)
@@ -310,6 +377,7 @@ def properties(input_type,input,dataset,data_type,output_type):
 # RESTful API URL structure for access to the binding data collection  
 @app.route('/rest/binding/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
 @app.route('/rest/binding/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+@login_required
 def binding(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
         pass
@@ -325,6 +393,7 @@ def binding(input_type,input,dataset,data_type,output_type):
 # RESTful API URL structure for access to the reactivity data collection
 @app.route('/rest/reactivity/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
 @app.route('/rest/reactivity/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+@login_required
 def reactivity(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
         pass
