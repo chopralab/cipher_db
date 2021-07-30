@@ -1,13 +1,14 @@
-# Import statements
-import requests
 import argparse
-import os
-import warnings
-import pandas as pd
-import json
-import xml.etree.ElementTree as ET
 from io import StringIO
+import json
+import os
+from typing import Dict, List, Optional, Union
+import xml.etree.ElementTree as ET
+import warnings
+
 from PIL import Image
+import pandas as pd
+import requests
 
 # Exception for invalid command line arguments
 class ArgumentError(Exception):
@@ -15,9 +16,8 @@ class ArgumentError(Exception):
 
 # Exception for PubChem REST API error status codes
 class StatusCodeError(Exception):
-
     def __init__(self, status_code):
-        message = 'Unknown Status Code Received: ' + str(status_code)
+        message = f'Unknown Status Code Received: {status_code}'
 
         if status_code == 400:
             message = 'Status Code 400 - PUGREST.BadRequest - Request is improperly formed (syntax error in the URL, POST body, etc.)'
@@ -91,7 +91,36 @@ class PubChem_Miner():
         pass
 
     @staticmethod
-    def get_compound_info(input_type,input,data_type,data,output_type='TXT'):
+    def get_compound_info(
+        input_type: str, input: str, data_type: str,
+        data: Union[List, str], output_type: str = 'TXT'
+    ) -> Optional[Union[str, pd.DataFrame, Dict, ET.ElementTree]]:
+        """
+        get the specified data for a given compound
+
+        Parameters
+        ----------
+        input_type : str
+            the type of the input query
+        input : str
+            the compound for which to retrieve data for
+        data_type : str
+            the type of data to query for
+        data : Union[List, str]
+            the specific data to retrieve
+        output_type : str, default='TXT'
+            how the results fo the query should be returned
+
+        Returns
+        -------
+        Optional[Union[str, pd.DataFrame, Dict, ET.ElementTree]]
+            the output, if a valid query was made
+
+        Raises
+        ------
+        StatusCodeError
+            [description]
+        """
         url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
         domain = "compound/"
 
@@ -111,14 +140,17 @@ class PubChem_Miner():
 
         if data_type is 'property':
             if isinstance(data, list):
-                dcopy = 'property/'
-                for elem in data:
-                    if elem == 'smiles':
-                        dcopy += 'canonicalSMILES' + ','
-                    else:
-                        dcopy += elem + ','
-                dcopy = dcopy[:-1]
-                data = dcopy + '/'
+                # dcopy = 'property/'
+                data = 'property/' + ','.join(
+                    ['canonicalSMILES' if d=='smiles' else d for d in data]
+                ) + '/'
+                # for elem in data:
+                #     if elem == 'smiles':
+                #         dcopy += 'canonicalSMILES' + ','
+                #     else:
+                #         dcopy += elem + ','
+                # dcopy = dcopy[:-1]
+                # data = dcopy + '/'
             else:
                 if data == 'smiles':
                     data = 'property/' + 'canonicalSMILES' + '/'
@@ -152,6 +184,8 @@ class PubChem_Miner():
                 return ET.ElementTree(ET.fromstring(StringIO(response.text)))
             if output_type == 'JSON':
                 return json.loads(StringIO(response.text))
+            
+            raise ValueError(f'Invalid output_type: "{output_type}"')
         else:
             try:
                 raise StatusCodeError(response.status_code)
@@ -312,16 +346,16 @@ def construct_url(line):
 
 # Call a PubChem REST API URL and receive a respone
 def pugrest_request(url):
-        response = requests.get(url)
-        if response:
-            print("Request on " + url + " succeded!")
+    response = requests.get(url)
+    if response:
+        print("Request on " + url + " succeded!")
+        return response
+    else:
+        try:
+            raise StatusCodeError(response.status_code)
+        except StatusCodeError:
+            print("Request on " + url + " failed")
             return response
-        else:
-            try:
-                raise StatusCodeError(response.status_code)
-            except StatusCodeError:
-                print("Request on " + url + " failed")
-                return response
 
 # Reconstruct the output url for no append mode
 def construct_out_url(line, url):
