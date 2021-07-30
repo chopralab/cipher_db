@@ -1,5 +1,5 @@
 # Import statements
-from types import MethodDescriptorType, MethodType
+from types import MethodType
 from flask import Flask, jsonify, request, render_template, redirect
 from flask.wrappers import Request
 from flask_api import status
@@ -329,13 +329,54 @@ def reactivity(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
         pass
     elif request.method == 'POST':
-        pass
+        print("Data: " + str(request.form))
+        data = request.form
+        if "query" not in data or "projection" not in data:
+            return "<pre>" + "Must have \"query\" and \"projection\" as fields in your POST request" + "</pre>", 400
+        try:
+            print(type(data['query']))
+            print(data['query'])
+            print(data['projection'])
+            query = json.loads(data['query'])
+            projection = json.loads(data['projection'])
+        except:
+            return "<pre>" + "The \"query\" and \"projection\" values must be in JSON format" + "</pre>", 400
+        for key,value in projection.items():
+            if value == 'True':
+                projection[key] = True
+            if value == 'False':
+                projection[key] = False
+        cursor = client.db.reactivity.find(query,projection)
+        output = format_output(cursor,'json')
+        output = output.replace("<pre>","")
+        output = output.replace("</pre>","")
+        return output, 200
     elif request.method == 'PUT':
-        pass
+        print("Data: " + str(request.form))
+        data = request.form
+        if "data" not in data:
+            return "<pre>" + "Must have \"data\" as a field in your PUT request" + "</pre>", 400
+        try:
+            data = json.loads(data['data'])
+        except:
+            return "<pre>" + "The \"data\" values must be in JSON format" + "</pre>", 400
+        doc = client.db.reactivity.insert_one(data)
+        print(type(doc))
+        return str(data), 200
     elif request.method == 'DELETE':
-        pass
+        print("Data: " + str(request.form))
+        data = request.form
+        if "data" not in data:
+            return "<pre>" + "Must have \"data\" as a field in your DELETE request" + "</pre>", 400
+        try:
+            data = json.loads(data['data'])
+        except:
+            return "<pre>" + "The \"data\" values must be in JSON format" + "</pre>", 400
+        doc = client.db.reactivity.delete_one(data)
+        print(type(doc))
+        return str(data), 200
     else:
-        pass
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # RESTful API URL structure for access to the spectra data collection
 @app.route('/rest/spectra/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
