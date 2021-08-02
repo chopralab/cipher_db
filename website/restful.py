@@ -25,12 +25,12 @@ import hashlib
 app = Flask(__name__)
 
 # Initilize the Secret Key
-key_file = open('utils/secret_key.txt', 'r')
+key_file = open('../utils/secret_key.txt', 'r')
 app.secret_key = key_file.readline().replace('\n','')
 key_file.close()
 
 # Set up Flask-Mongo DB connections
-login = open('utils/login.txt', 'r')
+login = open('../utils/login.txt', 'r')
 username = login.readline().replace('\n','')
 password = login.readline().replace('\n','')
 login.close()

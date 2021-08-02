@@ -4,6 +4,6 @@
 /utils/fpscores.pkl.gz
 /utils/sascorer.py
 /utils/standalone_model_numpy.py
-
-/rest/login.txt
-/triggers/login.txt
+/utils/login.txt
+/utils/hash_salt.txt
+/utils/secret_key.txt

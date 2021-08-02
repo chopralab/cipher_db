@@ -1,14 +1,16 @@
 import sys
 import pymongo
+import json
 from multiprocessing import Process
 sys.path.insert(0, '../utils/')
 from auto_mine_pubchem import PubChem_Miner
 from get_scores import ScoreFetcher
+from get_tree import TreeBuilder
 import bson
 from datetime import datetime
 
 # We will change the login system later
-login = open('login.txt','r')
+login = open('../utils/login.txt','r')
 username = login.readline().replace('\n','')
 password = login.readline().replace('\n','')
 
@@ -127,7 +129,7 @@ def update_property(id, coll):
     
     update_property_pubchem(id,result,coll)
 
-def update_reactivity_sascore(id, result, coll):
+def update_reactivity_synthscore(id, result, coll):
     result = coll.find_one(id)
     filled = []
     empty = []
@@ -181,6 +183,55 @@ def update_reactivity_sascore(id, result, coll):
         upsert=True
     )
 
+
+def update_reactivity_tree_build(id, result, coll):
+    result = coll.find_one(id)
+    filled = []
+    update = []
+    for key,val in result.items():
+        if key == 'smiles':
+            filled.append((key,val))
+    
+    if len(filled) != 1:
+        print('Error processing SMILES data')
+        return
+    print(filled)
+
+    smi = filled[0][1]
+
+    # Replace with ASKCOS Host
+    HOST = 'http://XX.XX.XX.XX'
+
+    # Create tree builder instance and get parameters
+    tb = TreeBuilder(HOST)
+    with open('tree_params.json') as f:
+        params = json.load(f)
+    
+    # Build the tree(s) and append the results
+    js = tb.build_tree(smi, params)
+    for key,val in js.items():
+        update.append((key, val))
+
+    # Perform database update
+    for elem in update:
+        key = elem[0]
+        val = elem[1]
+        print(key)
+        print(val)
+        doc = coll.find_one_and_update(
+            {"_id" : id},
+            {"$set":
+                {f"retro.{key}": val}
+            },upsert=True
+        )
+
+    # Perform date and time update
+    doc = coll.find_one_and_update(
+        {"_id" : id},
+        {"$currentDate": {'modified': True}},
+        upsert=True
+    )
+
 def update_reactivity(id, coll):
     try:
         result = coll.find_one(id)
@@ -189,7 +240,8 @@ def update_reactivity(id, coll):
         print("Look up Failed!")
         print(e)
     
-    update_reactivity_sascore(id, result, coll)
+    update_reactivity_synthscore(id, result, coll)
+    update_reactivity_tree_build(id, result, coll)
 
 #-------------------------
 # ------ TRIGGERS --------
