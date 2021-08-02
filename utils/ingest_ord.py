@@ -160,7 +160,7 @@ def main():
     parser.add_argument('--test-filenames', nargs='+',
                         help='specific filenames of ORD data files with which to test the script.')
     parser.add_argument('--max-rxns', type=int,
-                        help='the maximum number of reactions to process from each dataset. By default, process all reactions from each dataset. If the --test flag is passed, proecss _TEST_MAX_REACTIONS reactions by default.')
+                        help='the maximum number of reactions to process from each dataset. By default, process all reactions from each dataset. If the --test flag is passed, process _TEST_MAX_REACTIONS reactions by default.')
     args = parser.parse_args()
 
     db_rows = []
