@@ -1,7 +1,10 @@
 import argparse
+from itertools import chain, islice
 from pathlib import Path
 import pprint
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import (
+    Dict, Iterable, Iterator, List, Optional, Tuple, TypeVar, Union
+)
 
 import ray
 from rdkit import Chem, RDLogger
@@ -11,7 +14,9 @@ from ord_schema import message_helpers
 from ord_schema.proto import dataset_pb2
 from ord_schema.proto import reaction_pb2
 
-_TEST_MAX_REACTIONS = 10000
+T = TypeVar('T')
+
+_TEST_MAX_REACTIONS = 40000
 
 RDLogger.DisableLog('rdApp.*') 
 
@@ -19,6 +24,12 @@ try:
     ray.init('auto')
 except ConnectionError:
     ray.init()
+
+def batches(it: Iterable[T], size: int) -> Iterator[List]:
+    """Batch an iterable into batches of given size, with the final
+    batch potentially being smaller"""
+    it = iter(it)
+    return iter(lambda: list(islice(it, size)), [])
 
 @ray.remote
 def _process_reaction_batch(
@@ -31,8 +42,8 @@ def _process_reaction_batch(
 def process_reaction(
     reaction: reaction_pb2.Reaction, reactants: bool = False
 ) -> Tuple[str, List[str], List[str]]:
-    """
-    process a single reaction to obtain the products and reactants
+    """process a single reaction to obtain the reaction ID, a list of products, 
+    and a list of reactants, both as InChIKeys
 
     Parameters
     ----------
@@ -46,9 +57,9 @@ def process_reaction(
     reaction_id : str
         the ORD reaction ID of the given reaction
     product_inchikeys : List[str]
-        the inchikeys of the products
+        the InChIKeys of the products
     reactant_inchikeys : List[str]
-        the inchikeys of the reactants. Empty if reactants is False
+        the InChIKeys of the reactants. Empty if reactants is False
     """
     product_mols = []
     reactant_mols = []
@@ -81,16 +92,16 @@ def process_reaction(
 
     return reaction.reaction_id, product_inchikeys, reactant_inchikeys
 
-def process_file(filepath: Union[str, Path],
-                 ingest_reactants: bool = False,
-                 max_reactions: Optional[int] = None) -> List[Dict]:
+def process_ord_file(filepath: Union[str, Path],
+                     ingest_reactants: bool = False,
+                     max_reactions: Optional[int] = None) -> List[Dict]:
     """process all the reactions in single ORD data file to obtain a list of
     table rows corresponding to each reaction
 
     Parameters
     ----------
     filepath : Path
-        the filepath of the data file
+        the filepath of an ORD data file
     ingest_reactants : bool, default=False
         whether or not to ingest reactants as well
     max_reactions: Optional[int], default=None
@@ -105,23 +116,34 @@ def process_file(filepath: Union[str, Path],
         of the form:
 
         * 'reaction_id': the ORD reaction ID of the reaction
-        * 'products':  a list of reaction products as inchikeys
-        * 'reactants': a list of reaction reactants as inchikeys. Empty if 
+        * 'products':  a list of reaction products as InChIKeys
+        * 'reactants': a list of reaction reactants as InChIKeys. Empty if 
             ingest_reactants is False
     """
-    dataset = message_helpers.load_message(
-        str(filepath), dataset_pb2.Dataset
-    )
+    dataset = message_helpers.load_message(str(filepath), dataset_pb2.Dataset)
+
+    BATCH_SIZE = 512
     # NOTE(degraff): maybe a single for-loop is faster than 2 comprehensions
-    rows = [
-        process_reaction(reaction, ingest_reactants)
-        for reaction in tqdm(dataset.reactions[:max_reactions], 'Processing reactions')
+    refs = [
+        _process_reaction_batch.remote(reaction_batch, ingest_reactants)
+        for reaction_batch in batches(
+            dataset.reactions[:max_reactions], BATCH_SIZE
+        )
     ]
+    rowss = [
+        ray.get(ref) for ref in tqdm(
+            refs, desc='Processing reaction batches', unit='batch', smoothing=0.
+        )
+    ]
+    # rows = [
+    #     process_reaction(reaction, ingest_reactants)
+    #     for reaction in tqdm(dataset.reactions[:max_reactions], unit='rxn')
+    # ]
     rows = [
         {'reaction_id': reaction_id,
          'products': products,
          'reactants': reactants}
-        for reaction_id, products, reactants in rows
+        for reaction_id, products, reactants in chain(*rowss)
     ]
     return rows
     
@@ -145,17 +167,17 @@ def main():
     if args.test:
         max_rxns = args.max_rxns or _TEST_MAX_REACTIONS
         for filename in args.test_filenames:
-            db_rows.extend(process_file(
+            db_rows.extend(process_ord_file(
                 filename, args.ingest_reactants, max_rxns
             ))
         
-        pprint.pprint(db_rows[:20], compact=True)
+        # pprint.pprint(db_rows[:20], compact=True)
         exit(0)
 
     parent_dir = args.ord_data_repo / 'data'
     for data_dir in parent_dir.iterdir():
         for filepath in data_dir.iterdir():
-            db_rows.extend(process_file(
+            db_rows.extend(process_ord_file(
                 filepath, args.ingest_reactants, args.max_rxns
             ))
 
