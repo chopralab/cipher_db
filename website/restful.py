@@ -37,7 +37,7 @@ login.close()
 mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
 app.config['MONGO_URI'] = mongo_login
 app.config['MONGODB_SETTINGS'] = {
-    'host': 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
+    'host': f'mongodb+srv://{username}:{password}@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
 }
 
 # Initilize PyMongo
@@ -213,7 +213,7 @@ def gui_info():
 # summary --> refers to all enteries for the selected dataset (used with data_type)
 
 # Construct a Mongo DB query to access specified information from the database
-def construct_query(collection,input_type,input):
+def construct_query(collection, input_type, input):
     query = {}
 
     if input_type in ['inchi','inchikey','smiles','name'] and collection == 'general':
@@ -358,11 +358,13 @@ def general(input_type,input,data_type,output_type):
 @login_required
 def properties(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
-        query = construct_query('general',input_type,input)
-        projection = construct_projection(collection='properties',dataset=dataset)
+        query = construct_query('general', input_type, input)
+        projection = construct_projection(
+            collection='properties',dataset=dataset
+        )
         print(query)
         print(projection)
-        cursor = client.db.properties.find(query,projection)
+        cursor = client.db.properties.find(query, projection)
         output = format_output(cursor,output_type)
         return output
     elif request.method == 'POST':
@@ -446,6 +448,29 @@ def reactivity(input_type,input,dataset,data_type,output_type):
         return str(data), 200
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
+
+# RESTful API URL structure for access to the properties data collection
+@app.route('/rest/ord/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
+@app.route('/rest/properties/<input_type>/<input>/<dataset>/<data_type>/<output_type>', methods=['GET'])
+@login_required
+def ord(input_type, input, dataset, data_type, output_type):
+    if request.method == 'GET':
+        if input_type != 'inchikey':
+            raise ValueError(
+                'ORD only searchable by InChiKey key. '
+                f'Got input_type="{input_type}"'
+            )
+        cursor = client.db.ord.find({"products": input}, {"reaction_id"})
+        output = format_output(cursor, output_type)
+        return output
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'PUT':
+        pass
+    elif request.method == 'DELETE':
+        pass
+    else:
+        pass
 
 # RESTful API URL structure for access to the spectra data collection
 @app.route('/rest/spectra/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
