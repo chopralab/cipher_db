@@ -8,6 +8,7 @@ from typing import (
 
 import ray
 from rdkit import Chem, RDLogger
+import pymongo
 from tqdm import tqdm
 
 from ord_schema import message_helpers
@@ -15,15 +16,17 @@ from ord_schema.proto import dataset_pb2
 from ord_schema.proto import reaction_pb2
 
 T = TypeVar('T')
-
-_TEST_MAX_REACTIONS = 40000
-
+_TEST_MAX_REACTIONS = 5000
 RDLogger.DisableLog('rdApp.*') 
 
 try:
     ray.init('auto')
 except ConnectionError:
     ray.init()
+
+def get_host(username: str, password: str) -> str:
+    #NOTE(degraff): there's gotta be a better way to do this
+    return f'mongodb+srv://{username}:{password}@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
 
 def batches(it: Iterable[T], size: int) -> Iterator[List]:
     """Batch an iterable into batches of given size, with the final
@@ -92,65 +95,75 @@ def process_reaction(
 
     return reaction.reaction_id, product_inchikeys, reactant_inchikeys
 
-def process_ord_file(filepath: Union[str, Path],
+def process_ord_file(collection: pymongo.collection.Collection,
+                     filepath: Union[str, Path],
                      ingest_reactants: bool = False,
-                     max_reactions: Optional[int] = None) -> List[Dict]:
+                     max_reactions: Optional[int] = None):
     """process all the reactions in single ORD data file to obtain a list of
-    table rows corresponding to each reaction
+    documents corresponding to each reaction and insert them to the collection
 
-    Parameters
-    ----------
-    filepath : Path
-        the filepath of an ORD data file
-    ingest_reactants : bool, default=False
-        whether or not to ingest reactants as well
-    max_reactions: Optional[int], default=None
-        the maximum number of reactions to process from the dataset. If None,
-        process all reactions
-        
-    Returns
-    -------
-    rows : List[Dict]
-        the table rows processed from the datset in the given file. Each row 
-        corresponds to a single reaction in the dataset and is a dictionary
-        of the form:
+    Each document is of the following form:
 
         * 'reaction_id': the ORD reaction ID of the reaction
         * 'products':  a list of reaction products as InChIKeys
         * 'reactants': a list of reaction reactants as InChIKeys. Empty if 
             ingest_reactants is False
+
+    Parameters
+    ----------
+    collection : pymongo.collection.Collection
+        the collection to which data should be uploaded
+    filepath : Union[str, Path]
+        the filepath of the ORD data file
+    ingest_reactants : bool, default=False
+        whether or not to ingest reactants as well
+    max_reactions: Optional[int], default=None
+        the maximum number of reactions to process from the dataset. If None,
+        process all reactions
     """
     dataset = message_helpers.load_message(str(filepath), dataset_pb2.Dataset)
+    max_reactions = max_reactions or len(dataset.reactions)
 
-    BATCH_SIZE = 512
-    # NOTE(degraff): maybe a single for-loop is faster than 2 comprehensions
+    BATCH_SIZE = 8192
     refs = [
         _process_reaction_batch.remote(reaction_batch, ingest_reactants)
         for reaction_batch in batches(
             dataset.reactions[:max_reactions], BATCH_SIZE
         )
     ]
-    rowss = [
-        ray.get(ref) for ref in tqdm(
-            refs, desc='Processing reaction batches', unit='batch', smoothing=0.
-        )
-    ]
-    # rows = [
-    #     process_reaction(reaction, ingest_reactants)
-    #     for reaction in tqdm(dataset.reactions[:max_reactions], unit='rxn')
+    for ref in tqdm(refs, desc='Processing reactions', unit_scale=BATCH_SIZE,
+                    unit='reaction', leave=False):
+        docs = [
+            {'reaction_id': reaction_id,
+             'products': products,
+             'reactants': reactants}
+            for reaction_id, products, reactants in ray.get(ref)
+        ]
+        collection.insert_many(docs)
+    # rowss = [
+    #     ray.get(ref) for ref in tqdm(
+    #         refs, desc='Processing reaction batches', unit='batch', smoothing=0.
+    #     )
     # ]
-    rows = [
-        {'reaction_id': reaction_id,
-         'products': products,
-         'reactants': reactants}
-        for reaction_id, products, reactants in chain(*rowss)
-    ]
-    return rows
+    # # rows = [
+    # #     process_reaction(reaction, ingest_reactants)
+    # #     for reaction in tqdm(dataset.reactions[:max_reactions], unit='rxn')
+    # # ]
+    # rows = [
+    #     {'reaction_id': reaction_id,
+    #      'products': products,
+    #      'reactants': reactants}
+    #     for reaction_id, products, reactants in chain(*rowss)
+    # ]
+    # return rows
     
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d','--ord-data-repo', type=Path,
-                        default=Path.home() / 'ord/ord-data',
+    parser.add_argument('-u', '--username',
+                        help='the MongoDB username')
+    parser.add_argument('-p', '--password',
+                        help='the associated MongoDB password')
+    parser.add_argument('-d','--ord-data-repo', type=Path, required=True,
                         help='the path of the ORD-data repository')
     parser.add_argument('--ingest-reactants', default=False, 
                         action='store_true',
@@ -161,26 +174,30 @@ def main():
                         help='specific filenames of ORD data files with which to test the script.')
     parser.add_argument('--max-rxns', type=int,
                         help='the maximum number of reactions to process from each dataset. By default, process all reactions from each dataset. If the --test flag is passed, process _TEST_MAX_REACTIONS reactions by default.')
+
     args = parser.parse_args()
 
-    db_rows = []
+    host = get_host(args.username, args.password)
+    client = pymongo.MongoClient(host)
+    db = client.cipher_aspire
+
     if args.test:
         max_rxns = args.max_rxns or _TEST_MAX_REACTIONS
         for filename in args.test_filenames:
-            db_rows.extend(process_ord_file(
-                filename, args.ingest_reactants, max_rxns
-            ))
-        
-        # pprint.pprint(db_rows[:20], compact=True)
-        exit(0)
+            process_ord_file(
+                db.ord, filename, args.ingest_reactants, max_rxns
+            )
+        client.close()
+    else:
+        data_dir = args.ord_data_repo / 'data'
+        for filepath in tqdm(data_dir.glob('*/*.pb.gz'),
+                            desc='Processing files', unit='file'):
+            process_ord_file(
+                db.ord, filepath, args.ingest_reactants, args.max_rxns
+            )
 
-    parent_dir = args.ord_data_repo / 'data'
-    for data_dir in parent_dir.iterdir():
-        for filepath in data_dir.iterdir():
-            db_rows.extend(process_ord_file(
-                filepath, args.ingest_reactants, args.max_rxns
-            ))
-
+    client.close()
+    exit()
 
 if __name__ == '__main__':
     main()
