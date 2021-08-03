@@ -25,15 +25,16 @@ import hashlib
 app = Flask(__name__)
 
 # Initilize the Secret Key
-with open('utils/secret_key.txt', 'r') as fid:
-    app.secret_key = fid.readline().replace('\n','')
+key_file = open('../utils/secret_key.txt', 'r')
+app.secret_key = key_file.readline().replace('\n','')
+key_file.close()
 
 # Set up Flask-Mongo DB connections
-with open('utils/login.txt', 'r') as login:
-    username = login.readline().replace('\n','')
-    password = login.readline().replace('\n','')
-
-mongo_login = f'mongodb+srv://{username}:{password}@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
+login = open('../utils/login.txt', 'r')
+username = login.readline().replace('\n','')
+password = login.readline().replace('\n','')
+login.close()
+mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
 app.config['MONGO_URI'] = mongo_login
 app.config['MONGODB_SETTINGS'] = {
     'host': f'mongodb+srv://{username}:{password}@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
