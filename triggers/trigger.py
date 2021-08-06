@@ -234,8 +234,7 @@ def update_reactivity_tree_build(id, result, coll, db):
     smi = filled[0][1]
 
     # Replace with ASKCOS Host
-    # HOST = 'http://XX.XX.XX.XX'
-    HOST = 'http://10.164.22.106'
+    HOST = 'http://XX.XX.XX.XX'
 
     # Create tree builder instance and get parameters
     tb = TreeBuilder(HOST)
