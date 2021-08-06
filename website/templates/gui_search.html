@@ -74,6 +74,7 @@
                 <input type="radio" class="radio" id="general" name="output" value="txt" /> <span class="radio_text">Text</span>
                 <input type="radio" class="radio" id="properties" name="output" value="csv"/> <span class="radio_text">CSV</span>
                 <input type="radio" class="radio" id="binding" name="output" value="json"/> <span class="radio_text">JSON</span>
+                <input type="radio" class="radio" id="reactivity" name="output" value="image"/> <span class="radio_text">Image</span>
                 <br>
                 <input class="button" id="submit" type='submit' value="Submit">
                 <br>
@@ -104,6 +105,7 @@
             var new_url = "/rest/"+collection+"/"+input_type+"/"+input_value+"/summary/"+output_type;
             console.log(new_url)
             document.getElementById("frame").src=new_url;
+            document.getElementbyId("frame").innerHTML += "Hello"
         }
         if (window.location.href.includes("coll=")) {
             window.onload = change_src();

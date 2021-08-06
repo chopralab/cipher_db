@@ -10,7 +10,9 @@ from flask_login import LoginManager, login_required, current_user, login_user, 
 from flask_sslify import SSLify
 from bson.json_util import dumps
 from flask_mongoengine import MongoEngine
+from gridfs import GridFS
 import json
+import codecs
 import logging
 import hashlib
 
@@ -216,7 +218,7 @@ def gui_info():
 def construct_query(collection,input_type,input):
     query = {}
 
-    if input_type in ['inchi','inchikey','smiles','name'] and collection == 'general':
+    if input_type in ['inchi','inchikey','smiles','name'] and collection in ['general', 'reactivity']:
         query = {input_type: input}
     elif input_type == 'inchikey':
         query = {input_type: input}
@@ -391,12 +393,31 @@ def binding(input_type,input,dataset,data_type,output_type):
         pass
 
 # RESTful API URL structure for access to the reactivity data collection
-@app.route('/rest/reactivity/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
-@app.route('/rest/reactivity/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+# @app.route('/rest/reactivity/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
+# @app.route('/rest/reactivity/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+@app.route('/rest/reactivity/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'data_type':None,'output_type':None})
+@app.route('/rest/reactivity/<input_type>/<path:input>/<data_type>/<output_type>')
 @login_required
-def reactivity(input_type,input,dataset,data_type,output_type):
+def reactivity(input_type,input,data_type,output_type):
     if request.method == 'GET':
-        pass
+        if output_type == 'image':
+            fs = GridFS(client.db)
+            images = []
+            askcos = client.db.reactivity.find_one({input_type: input})['askcos']
+            for num in askcos['images']:
+                image = askcos['images'][num]['imageID']
+                gOut = fs.get(image)
+                base64_data = codecs.encode(gOut.read(), 'base64')
+                image = base64_data.decode('utf-8')
+                images.append(image)
+            return render_template('trees.html', images=images)
+        query = construct_query('reactivity',input_type,input)
+        projection = construct_projection(collection='reactivity', data_type=data_type)
+        print(query)
+        print(projection)
+        cursor = client.db.reactivity.find(query,projection)
+        output = format_output(cursor,output_type)
+        return output
     elif request.method == 'POST':
         print("Data: " + str(request.form))
         data = request.form

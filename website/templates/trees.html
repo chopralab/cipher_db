@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tree Request</title>
+    <style>
+        img {
+            height: 30%;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    {% for img in images %}
+    Tree {{ loop.index }}:<br>
+    <img src="data:image/png;base64, {{img}}" alt="{{img}}"><br><br>
+    {% endfor %}
+</body>
+</html>
