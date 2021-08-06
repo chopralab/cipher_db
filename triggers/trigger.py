@@ -14,17 +14,22 @@ from multiprocessing import Process
 from gridfs import GridFS
 sys.path.insert(0, '../utils/')
 from auto_mine_pubchem import PubChem_Miner
-from get_scores import ScoreFetcher
+#from get_scores import ScoreFetcher
 from get_tree import TreeBuilder
 from vis_tree import TreeVisualizer
 import bson
 from datetime import datetime
+import urllib
+
+sys.path.insert(0, '/Users/ludo/src/CANDO-master')
+import cando as cnd
 
 # We will change the login system later
 login = open('../utils/login.txt','r')
 username = login.readline().replace('\n','')
+username = urllib.parse.quote(username)
 password = login.readline().replace('\n','')
-
+password = urllib.parse.quote(password)
 
 #-------------------------------
 # ------ UPDATE HELPERS --------
@@ -284,6 +289,42 @@ def update_reactivity(id, db, coll):
     update_reactivity_tree_build(id, result, coll, db)
 
 
+def update_binding_bandock(id, coll):
+    mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
+    client = pymongo.MongoClient(mongo_login)
+    general = client['cipher_aspire']['general']
+    try:
+        orig = general.find_one(id)
+    except Exception as e:
+        result = None
+        print("Look up Failed!")
+        print(e)
+        return
+    try:
+        result = coll.find_one(id)
+    except:
+        print("Document does not exists in this collection.")
+        coll.insert(id)
+
+    smi = orig['smiles'] 
+    name = orig['name']
+    doc = coll.find_one_and_update(
+        {'_id': id},
+        {"$set":
+            {f'name': f'{name}', f'smiles': f'{smi}'}
+        },upsert=True
+    )
+    sig = cnd.generate_signature_smi(smi, fp="rd_ecfp4", vect="int", dist="dice", 
+            org="aspire", bs="coach", c_cutoff=0.0, p_cutoff=0.0, 
+            percentile_cutoff=0.0, i_score="dCxP", save_sig=False)
+    for i in sig.index:
+        doc = coll.find_one_and_update(
+            {'_id': id},
+            {"$set":
+                {f'BANDOCK.{i}': f'{sig.loc[i,0]}'}
+            },upsert=True
+        )
+
 #-------------------------
 # ------ TRIGGERS --------
 #-------------------------
@@ -342,13 +383,36 @@ def reactivity_trigger():
         print("Error Occurred")
         print(e)
 
+def binding_bandock_trigger():
+    mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
+    client = pymongo.MongoClient(mongo_login)
+    binding = client['cipher_aspire']['binding']
+    general = client['cipher_aspire']['general']
+
+    try:
+        with general.watch([{'$match': {'operationType': 'update'}}]) as stream:
+            for update_change in stream:
+                # Do something
+                print(update_change)
+                print('-----')
+                id = update_change['documentKey']['_id']
+                update_binding_bandock(id, binding)
+    except pymongo.errors.PyMongoError as e:
+        # The ChangeStream encountered an unrecoverable error or the
+        # resume attempt failed to recreate the cursor.
+        print("Error Occurred")
+        print(e)
+
+
 def main():
     p1 = Process(target=general_trigger)
     p2 = Process(target=property_trigger)
     p3 = Process(target=reactivity_trigger)
+    p4 = Process(target=binding_bandock_trigger)
     p1.start()
     p2.start()
     p3.start()
+    p4.start()
 
 if __name__ == '__main__':
     main()
