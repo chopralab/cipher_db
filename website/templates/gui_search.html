@@ -105,7 +105,6 @@
             var new_url = "/rest/"+collection+"/"+input_type+"/"+input_value+"/summary/"+output_type;
             console.log(new_url)
             document.getElementById("frame").src=new_url;
-            document.getElementbyId("frame").innerHTML += "Hello"
         }
         if (window.location.href.includes("coll=")) {
             window.onload = change_src();

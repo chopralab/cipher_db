@@ -1,0 +1,21 @@
+digraph {
+	graph [splines=ortho]
+	"CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1" [label="" color=skyblue2 image="CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1.png" shape=rect style=rounded]
+	"CC(O)(c1ccccc1)c1ccc(Cl)cc1" [label="" color=skyblue2 image="CC(O)(c1ccccc1)c1ccc(Cl)cc1.png" shape=rect style=rounded]
+	"dCCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1" [label="" height=0 width=0]
+	"CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1" -> "dCCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1" [arrowhead=none]
+	"dCCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1" -> "CC(O)(c1ccccc1)c1ccc(Cl)cc1"
+	"CC(O)(c1ccccc1)c1ccc(Cl)cc1" [label="" color=skyblue2 image="CC(O)(c1ccccc1)c1ccc(Cl)cc1.png" shape=rect style=rounded]
+	"C[Mg]I" [label="" color=springgreen3 image="C[Mg]I.png" shape=rect style=rounded]
+	"dCC(O)(c1ccccc1)c1ccc(Cl)cc1" [label="" height=0 width=0]
+	"CC(O)(c1ccccc1)c1ccc(Cl)cc1" -> "dCC(O)(c1ccccc1)c1ccc(Cl)cc1" [arrowhead=none]
+	"dCC(O)(c1ccccc1)c1ccc(Cl)cc1" -> "C[Mg]I"
+	"CC(O)(c1ccccc1)c1ccc(Cl)cc1" [label="" color=skyblue2 image="CC(O)(c1ccccc1)c1ccc(Cl)cc1.png" shape=rect style=rounded]
+	"O=C(c1ccccc1)c1ccc(Cl)cc1" [label="" color=springgreen3 image="O=C(c1ccccc1)c1ccc(Cl)cc1.png" shape=rect style=rounded]
+	"dCC(O)(c1ccccc1)c1ccc(Cl)cc1" [label="" height=0 width=0]
+	"dCC(O)(c1ccccc1)c1ccc(Cl)cc1" -> "O=C(c1ccccc1)c1ccc(Cl)cc1"
+	"CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1" [label="" color=skyblue2 image="CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1.png" shape=rect style=rounded]
+	"CCN(CC)CCBr" [label="" color=springgreen3 image="CCN(CC)CCBr.png" shape=rect style=rounded]
+	"dCCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1" [label="" height=0 width=0]
+	"dCCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1" -> "CCN(CC)CCBr"
+}

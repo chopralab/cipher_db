@@ -41,6 +41,17 @@ def get_edges(tree, parent=None):
     else:
         return edges
 
+def get_roots(edges, nodes):
+    '''
+    Given a list of edges, finds nodes with no children
+    '''
+    children = list(nodes)
+    for edge in edges:
+        parent = edge[0]
+        if parent in children:
+            children.remove(parent)
+    return children
+
 def gen_viz(edges, splines='none'):
     '''
     Given a list of edges of a retrosynthetic tree, generates a graph visualization
@@ -61,9 +72,13 @@ def gen_viz(edges, splines='none'):
     else:
         graph = graphviz.Digraph(format='png')
     parents = []
+    roots = get_roots(edges, unismi)
     for edge in edges:
-        graph.node(edge[0], label='', image=img_map[edge[0]], shape='rect', style='rounded')
-        graph.node(edge[1], label='', image=img_map[edge[1]], shape='rect', style='rounded')
+        graph.node(edge[0], label='', image=img_map[edge[0]], shape='rect', style='rounded', color='skyblue2')
+        if edge[1] in roots:
+            graph.node(edge[1], label='', image=img_map[edge[1]], shape='rect', style='rounded', color='springgreen3')
+        else:
+            graph.node(edge[1], label='', image=img_map[edge[1]], shape='rect', style='rounded', color='skyblue2')
         graph.node(f'd{edge[0]}', label='', width='0', height='0')
         if edge[0] not in parents:
             parents.append(edge[0])

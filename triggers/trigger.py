@@ -14,7 +14,7 @@ from multiprocessing import Process
 from gridfs import GridFS
 sys.path.insert(0, '../utils/')
 from auto_mine_pubchem import PubChem_Miner
-#from get_scores import ScoreFetcher
+from get_scores import ScoreFetcher
 from get_tree import TreeBuilder
 from vis_tree import TreeVisualizer
 import bson
