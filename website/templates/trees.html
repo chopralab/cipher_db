@@ -4,14 +4,14 @@
     <title>Tree Request</title>
     <style>
         img {
-            height: 30%;
-            width: 30%;
+            width: 50%;
+            height: auto;
         }
     </style>
 </head>
 <body>
     {% for img in images %}
-    Tree {{ loop.index }}:<br>
+    <b> Tree {{ loop.index }}: </b><br>
     <img src="data:image/png;base64, {{img}}" alt="{{img}}"><br><br>
     {% endfor %}
 </body>

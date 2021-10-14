@@ -134,7 +134,7 @@ def login():
     elif request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        salt_file = open('utils/hash_salt.txt', 'r')
+        salt_file = open('../utils/hash_salt.txt', 'r')
         salt = salt_file.readline().replace('\n','')
         key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000, dklen=128)
         key = str(key)[2:-1]
