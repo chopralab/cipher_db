@@ -12,9 +12,10 @@ from bson.json_util import dumps
 from flask_mongoengine import MongoEngine
 from gridfs import GridFS
 import json
-import codecs
 import logging
 import hashlib
+import codecs
+
 
 #------------------------------------------------------
 #--------------- Flask Initilization ------------------
@@ -27,19 +28,20 @@ import hashlib
 app = Flask(__name__)
 
 # Initilize the Secret Key
-key_file = open('../utils/secret_key.txt', 'r')
+key_file = open('utils/secret_key.txt', 'r')
 app.secret_key = key_file.readline().replace('\n','')
 key_file.close()
 
 # Set up Flask-Mongo DB connections
-login = open('../utils/login.txt', 'r')
+login = open('utils/login.txt', 'r')
 username = login.readline().replace('\n','')
 password = login.readline().replace('\n','')
 login.close()
 mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
 app.config['MONGO_URI'] = mongo_login
 app.config['MONGODB_SETTINGS'] = {
-    'host': f'mongodb+srv://{username}:{password}@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
+    'host': 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority',
+    'connect': False
 }
 
 # Initilize PyMongo
@@ -99,6 +101,30 @@ def index():
             return "<pre>" + "Form does not contain correct form info" + "</pre>", 400
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
+
+
+#---------------------------------------------------
+#----------------- Test Templates ------------------
+#---------------------------------------------------
+
+@app.route('/test')
+def test():
+    return render_template("gui_search_template.html"), 200
+
+@app.route('/display_test')
+def display_test():
+    return render_template("display.html"), 200
+
+@app.route('/display_json')
+def display_json():
+    with open("templates/test.json") as j_file:
+        j = json.load(j_file)
+    return "<pre>" + dumps(j, indent=2) + "</pre>"
+
+#---------------------------------------------------
+#----------------- Login Templates -----------------
+#---------------------------------------------------
+
 
 # Route to the login page
 @app.route('/login/', methods=['GET','POST'])
@@ -294,7 +320,6 @@ def format_output(cursor, output_type):
 # RESTful API URL structure for access to the general data collection
 @app.route('/rest/general/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'data_type':None,'output_type':None})
 @app.route('/rest/general/<input_type>/<input>/<data_type>/<output_type>', methods=['GET'])
-@login_required
 def general(input_type,input,data_type,output_type):
     if request.method == 'GET':
         query = construct_query('general',input_type,input)
@@ -340,17 +365,7 @@ def general(input_type,input,data_type,output_type):
         print(type(doc))
         return str(data), 200
     elif request.method == 'DELETE':
-        print("Data: " + str(request.form))
-        data = request.form
-        if "data" not in data:
-            return "<pre>" + "Must have \"data\" as a field in your DELETE request" + "</pre>", 400
-        try:
-            data = json.loads(data['data'])
-        except:
-            return "<pre>" + "The \"data\" values must be in JSON format" + "</pre>", 400
-        doc = client.db.general.delete_one(data)
-        print(type(doc))
-        return str(data), 200
+       return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
@@ -372,11 +387,14 @@ def properties(input_type,input,dataset,data_type,output_type):
     elif request.method == 'POST':
         pass
     elif request.method == 'PUT':
-        pass
+        data = request.json
+        doc = client.db.spectra.insert_one(data)
+        print(type(doc))
+        return str(data), 200
     elif request.method == 'DELETE':
-        pass
+        return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
-        pass
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # RESTful API URL structure for access to the binding data collection  
 @app.route('/rest/binding/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
@@ -388,15 +406,16 @@ def binding(input_type,input,dataset,data_type,output_type):
     elif request.method == 'POST':
         pass
     elif request.method == 'PUT':
-        pass
+        data = request.json
+        doc = client.db.spectra.insert_one(data)
+        print(type(doc))
+        return str(data), 200
     elif request.method == 'DELETE':
-        pass
+        return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
-        pass
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # RESTful API URL structure for access to the reactivity data collection
-# @app.route('/rest/reactivity/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
-# @app.route('/rest/reactivity/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
 @app.route('/rest/reactivity/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'data_type':None,'output_type':None})
 @app.route('/rest/reactivity/<input_type>/<path:input>/<data_type>/<output_type>')
 @login_required
@@ -444,35 +463,18 @@ def reactivity(input_type,input,data_type,output_type):
         output = output.replace("</pre>","")
         return output, 200
     elif request.method == 'PUT':
-        print("Data: " + str(request.form))
-        data = request.form
-        if "data" not in data:
-            return "<pre>" + "Must have \"data\" as a field in your PUT request" + "</pre>", 400
-        try:
-            data = json.loads(data['data'])
-        except:
-            return "<pre>" + "The \"data\" values must be in JSON format" + "</pre>", 400
-        doc = client.db.reactivity.insert_one(data)
+        data = request.json
+        doc = client.db.spectra.insert_one(data)
         print(type(doc))
         return str(data), 200
     elif request.method == 'DELETE':
-        print("Data: " + str(request.form))
-        data = request.form
-        if "data" not in data:
-            return "<pre>" + "Must have \"data\" as a field in your DELETE request" + "</pre>", 400
-        try:
-            data = json.loads(data['data'])
-        except:
-            return "<pre>" + "The \"data\" values must be in JSON format" + "</pre>", 400
-        doc = client.db.reactivity.delete_one(data)
-        print(type(doc))
-        return str(data), 200
+        return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # RESTful API URL structure for access to the properties data collection
 @app.route('/rest/ord/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
-@app.route('/rest/properties/<input_type>/<input>/<dataset>/<data_type>/<output_type>', methods=['GET'])
+@app.route('/rest/ord/<input_type>/<input>/<dataset>/<data_type>/<output_type>', methods=['GET'])
 @login_required
 def ord(input_type, input, dataset, data_type, output_type):
     if request.method == 'GET':
@@ -482,76 +484,96 @@ def ord(input_type, input, dataset, data_type, output_type):
                 f'Got input_type="{input_type}"'
             )
         cursor = client.db.ord.find({"products": input}, {"reaction_id"})
-        output = format_output(cursor, output_type)
-        return output
+        if output_type == 'website':
+            html_text = "<pre>"
+            for elem in cursor:
+                external_url = "https://client.open-reaction-database.org/id/" + str(elem["reaction_id"])
+                reaction_id = str(elem["reaction_id"])
+                html_text += "<a href=" + external_url + ">" + reaction_id + "</a>"
+                html_text += "<br>"
+            html_text +="</pre>"
+            return html_text, 200
+        else:
+            output = format_output(cursor, output_type)
+            return output
     elif request.method == 'POST':
         pass
     elif request.method == 'PUT':
-        pass
+        data = request.json
+        doc = client.db.spectra.insert_one(data)
+        print(type(doc))
+        return str(data), 200
     elif request.method == 'DELETE':
-        pass
+         return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
-        pass
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # RESTful API URL structure for access to the spectra data collection
 @app.route('/rest/spectra/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
 @app.route('/rest/spectra/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+@login_required
 def spectra(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
         pass
     elif request.method == 'POST':
         pass
     elif request.method == 'PUT':
-        pass
+        data = request.json
+        doc = client.db.spectra.insert_one(data)
+        print(type(doc))
+        return str(data), 200
     elif request.method == 'DELETE':
-        pass
+         return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
-        pass
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # RESTful API URL structure for access to the clinical data collection
 @app.route('/rest/clinical/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
 @app.route('/rest/clinical/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+@login_required
 def clinical(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
-        pass
+        return "<pre>" + "This database collection has not been implemented yet" + "</pre>", 200
     elif request.method == 'POST':
-        pass
+        return "<pre>" + "This database collection has not been implemented yet" + "</pre>", 200
     elif request.method == 'PUT':
-        pass
+        return  "<pre>" + "Addition to this collection has not been implemented yet" + "</pre>", 400
     elif request.method == 'DELETE':
-        pass
+         return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
-        pass
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # RESTful API URL structure for access to the animal data collection
 @app.route('/rest/animal/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
 @app.route('/rest/animal/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+@login_required
 def animal(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
-        pass
+        return "<pre>" + "This database collection has not been implemented yet" + "</pre>", 200
     elif request.method == 'POST':
-        pass
+        return "<pre>" + "This database collection has not been implemented yet" + "</pre>", 200
     elif request.method == 'PUT':
-        pass
+        return  "<pre>" + "Addition to this collection has not been implemented yet" + "</pre>", 400
     elif request.method == 'DELETE':
-        pass
+         return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
-        pass
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # RESTful API URL structure for access to the machine learning (ML) data collection
 @app.route('/rest/ml/', methods=['POST','PUT','DELETE'], defaults={'input_type':None,'input':None,'dataset':None,'data_type':None,'output_type':None})
 @app.route('/rest/ml/<input_type>/<input>/<dataset>/<data_type>/<output_type>')
+@login_required
 def ml(input_type,input,dataset,data_type,output_type):
     if request.method == 'GET':
-        pass
+        return "<pre>" + "This database collection has not been implemented yet" + "</pre>", 200
     elif request.method == 'POST':
-        pass
+        return "<pre>" + "This database collection has not been implemented yet" + "</pre>", 200
     elif request.method == 'PUT':
-        pass
+        return  "<pre>" + "Addition to this collection has not been implemented yet" + "</pre>", 400
     elif request.method == 'DELETE':
-        pass
+         return "<pre>" + "DELETE requests are not supported via the RESTful API <br> If you beleive inaccurate information has been submitted or you would like to make a retraction, please contact the us at ???" + "</pre>", 400
     else:
-        pass
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # Run the Flask Application
 if __name__ == "__main__":

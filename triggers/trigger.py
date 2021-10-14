@@ -408,11 +408,11 @@ def main():
     p1 = Process(target=general_trigger)
     p2 = Process(target=property_trigger)
     p3 = Process(target=reactivity_trigger)
-    p4 = Process(target=binding_bandock_trigger)
+    #p4 = Process(target=binding_bandock_trigger)
     p1.start()
     p2.start()
     p3.start()
-    p4.start()
+    #p4.start()
 
 if __name__ == '__main__':
     main()
