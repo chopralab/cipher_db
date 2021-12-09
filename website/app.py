@@ -194,10 +194,7 @@ def gui_search(info):
         form = request.form
         if "home" in form:
             return redirect("/")
-        collection = form['coll']
-        input_type = form['input']
-        input_value = form['value']
-        output_type = form['output']
+       # TODO: fix here
         params = "?"+"coll="+collection+"&input_type="+input_type+"&input_value="+input_value+"&output_type="+output_type
         return redirect('/gui/search/'+params)
     else:
