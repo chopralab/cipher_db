@@ -18,3 +18,5 @@ test/*
 /utils/login.txt
 /utils/hash_salt.txt
 /utils/secret_key.txt
+
+/triggers/OPIOID_RECEPTORS/*

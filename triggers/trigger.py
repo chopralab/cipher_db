@@ -403,7 +403,6 @@ def binding_bandock_trigger():
         print("Error Occurred")
         print(e)
 
-
 def main():
     p1 = Process(target=general_trigger)
     p2 = Process(target=property_trigger)
