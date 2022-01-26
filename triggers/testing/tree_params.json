@@ -1,0 +1,18 @@
+{
+"max_depth": 9,
+"max_branching": 25,
+"expansion_time": 60,
+"max_ppg": 100,
+"template_count": 1000,
+"max_cum_prob": 0.9999,
+"chemical_property_logic": "none",
+"max_chemprop_c": 0,
+"max_chemprop_n": 0,
+"max_chemprop_o": 0,
+"max_chemprop_h": 0,
+"chemical_popularity_logic": "none",
+"min_chempop_reactants": 5,
+"min_chempop_products": 5,
+"filter_threshold": 0.01,
+"return_first": "true"
+}

@@ -19,4 +19,4 @@ test/*
 /utils/hash_salt.txt
 /utils/secret_key.txt
 
-/triggers/OPIOID_RECEPTORS/*
+/data/OPIOID_RECEPTORS/*
