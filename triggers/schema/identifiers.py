@@ -1,6 +1,7 @@
 import pymongo
 import json
 import requests
+import rdkit
 
 class InvalidJsonError(Exception):
     pass
@@ -37,6 +38,30 @@ class Compounds:
     remove(inchikey)
         Removes the compound with the following InChi Key from the compounds collection of the database
     '''
+
+    def __request_inchikey():
+        '''
+        Helper method for getting the compounds InChi Key
+        '''
+        pass
+
+    def __request_inchi():
+        '''
+        Helper method for getting the compounds InChi string
+        '''
+        pass
+
+    def __request_smiles():
+        '''
+        Helper method for getting the compounds SMILES string
+        '''
+        pass
+
+    def __request_IUPAC_name():
+        '''
+        Helper method for getting the compounds IUPAC name
+        '''
+        pass
 
     @staticmethod
     def insert(json):

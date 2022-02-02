@@ -20,3 +20,4 @@ test/*
 /utils/secret_key.txt
 
 /data/OPIOID_RECEPTORS/*
+/data/DESI/*
