@@ -24,23 +24,10 @@ def request_id_from_cid(cid):
     response = requests.get(request_string)
     if response:
         response = json.loads(response.text)
-        smiles = response["PropertyTable"]["Properties"][0]["CanonicalSMILES"]
         inchikey = response["PropertyTable"]["Properties"][0]["InChIKey"]
-        return smiles, inchikey
+        return inchikey
     else:
         print("Request ID failed using CID, Status Code: " + str(response.status_code))
-        return None, None
-
-# Use PubChem restful API to request name information 
-def request_name_from_cid(cid):
-    request_string = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/{}/{}/synonyms/JSON".format("cid", cid)
-    response = requests.get(request_string)
-    if response:
-        response = json.loads(response.text)
-        name = response["InformationList"]["Information"][0]["Synonym"][0]
-        return name
-    else:
-        print("Request name failed using CID, Status Code: " + str(response.status_code))
         return None
 
 # Converts any list elements to tuples for a list of key-value pairs in a single nested JSON
@@ -69,7 +56,7 @@ def import_binding_json():
                                     same_source = True
                     if same_source:
                         identical = False
-                        docs = collection.find({"inchikey":inchikey, args.receptor+"."+args.source:{"$exists": True}})
+                        docs = collection.find({"inchikey":inchikey, "pubchem."+args.receptor+"."+args.source:{"$exists": True}})
                         for doc in docs:
                            if elem == doc[args.receptor][args.source]:
                                identical = True
@@ -84,17 +71,38 @@ def import_binding_json():
                                        units = doc[args.receptor][args.source]["units"]
                                        collection.find_one_and_update({"inchikey":inchikey}, {"$rename":{args.receptor+"."+args.source:args.receptor+"."+args.source+"_"+units}})
                         if identical:
-                            print("Identical entry already exists in the database for " + name + ", " + smiles + ", " + inchikey)
+                            print("Identical entry already exists in the database for " + inchikey)
                         else:
                             units = elem["units"]
-                            collection.find_one_and_update({"inchikey":inchikey}, {"$set":{args.receptor+"."+args.source+"_"+units:elem}})
+                            collection.find_one_and_update(
+                                {"inchikey":inchikey}, 
+                                {"$set":{"pubchem."+args.receptor+"."+args.source+"_"+units:elem}}
+                            )
+                            collection.find_one_and_update(
+                                {"inchikey":inchikey},
+                                {"$currentDate": {'modified': True}},
+                                upsert=True
+                            )
                     else:
-                        collection.find_one_and_update({"inchikey":inchikey}, {"$set":{args.receptor+"."+args.source:elem}})
+                        collection.find_one_and_update(
+                            {"inchikey":inchikey}, 
+                            {"$set":{"pubchem."+args.receptor+"."+args.source:elem}}
+                        )
+                        collection.find_one_and_update(
+                            {"inchikey":inchikey},
+                            {"$currentDate": {'modified': True}},
+                            upsert=True
+                        )
                 else:
-                    collection.find_one_and_update({"inchikey":inchikey}, {"$set":{args.receptor+"."+args.source:elem}})
+                    collection.find_one_and_update({"inchikey":inchikey}, {"$set":{"pubchem."+args.receptor+"."+args.source:elem}})
             else:
-                entry = {"name":name,"smiles":smiles,"inchikey":inchikey,args.receptor:{args.source:elem}}
+                entry = {"inchikey":inchikey,"pubchem":{args.receptor:{args.source:elem}}}
                 db_entry = collection.insert_one(entry)
+                collection.find_one_and_update(
+                    {"inchikey":inchikey},
+                    {"$currentDate": {'modified': True}},
+                    upsert=True
+                )
                 print(db_entry.inserted_id)
 
 import_binding_json()
