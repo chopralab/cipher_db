@@ -1,0 +1,7 @@
+# Function dependencies, for example:
+# package>=version
+pymongo
+requests
+datetime
+certifi
+dnspython
