@@ -19,5 +19,6 @@ test/*
 /utils/hash_salt.txt
 /utils/secret_key.txt
 
-/data/OPIOID_RECEPTORS/*
+/data/OPIOID_RECEPTORS_PUBCHEM/*
 /data/DESI/*
+/data/CHEMBL/*

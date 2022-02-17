@@ -1,10 +1,10 @@
+from urllib import response
 import pymongo
 import json
 import requests
 import rdkit
-
-class InvalidJsonError(Exception):
-    pass
+import time
+from rdkit import Chem
 
 class CompoundNotFoundError(Exception):
     pass
@@ -27,6 +27,15 @@ class ExternalDatabaseNotFoundError(Exception):
 class BindingSiteNotFoundError(Exception):
     pass
 
+class InvalidRequestError(Exception):
+    pass
+
+class InvalidSMILESError(Exception):
+    pass
+
+class CompoundAlreadyExistsError(Exception):
+    pass
+
 class Compounds:
     '''
     Class for interacting with the compounds collection of the CIPHER database
@@ -39,46 +48,70 @@ class Compounds:
         Removes the compound with the following InChi Key from the compounds collection of the database
     '''
 
-    def __request_inchikey():
+    @staticmethod
+    def __get_ids_from_inchikey(inchikey):
         '''
-        Helper method for getting the compounds InChi Key
         '''
-        pass
-
-    def __request_inchi():
-        '''
-        Helper method for getting the compounds InChi string
-        '''
-        pass
-
-    def __request_smiles():
-        '''
-        Helper method for getting the compounds SMILES string
-        '''
-        pass
-
-    def __request_IUPAC_name():
-        '''
-        Helper method for getting the compounds IUPAC name
-        '''
-        pass
+        url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/" + inchikey + "/property/IUPACName/json"
+        response = requests.get(url)
+        if response:
+            data = json.loads(response.text)
+            cid = data["PropertyTable"]["Properties"][0]["CID"]
+            iupac = data["PropertyTable"]["Properties"][0]["IUPACName"]
+            return cid, iupac
+        else:
+            raise InvalidRequestError("Invalid Request - Request on InChi Key " + inchikey + " failed with status code " + response.status_code)
 
     @staticmethod
-    def insert(json):
+    def insert(collection, smiles, name="n/a"):
         '''
         Inserts the compound specified by the JSON doccument into the compounds collection of the database
 
         Parameters
         ----------
-        json: dict, required
+        smiles: string, required
             A JSON doccument which contains either partial or full identifying information on a chemical compound
 
         Raises
         ------
-        InvalidJsonError
-            If there is no "inchikey" or "smiles" keys specified in the JSON doccument, then the JSON is rejected 
+        InvalidSMILESError
+            If the provided SMILES is invalid based on RDKit SmilesToMol conversion
         '''
-        pass
+        entry = {
+            "name": "",
+            "inchikey": "",
+            "smiles": "",
+            "isomeric_smiles": "",
+            "inchi": "",
+            "cid": "",
+            "iupac": "",
+        }
+
+        try:
+            m = Chem.MolFromSmiles(smiles)
+        except:
+            raise InvalidSMILESError("The provided SMILES cannot be converted into a valid molecule")
+
+        entry["name"] = name
+        entry["inchikey"] = Chem.MolToInchiKey(m)
+        entry["smiles"] = Chem.MolToSmiles(m,isomericSmiles=False)
+        entry["isomeric_smiles"] = Chem.MolToSmiles(m,isomericSmiles=True)
+        entry["inchi"] = Chem.MolToInchi(m)
+
+        try:
+            entry["cid"], entry["iupac"] = Compounds.__get_ids_from_inchikey(entry["inchikey"])
+        except:
+            print("Compound " + smiles + " not found in PubChem, CID and IUPAC Name will not be entered")
+
+        if collection.find_one({"inchikey": entry["inchikey"]}) is not None:
+            raise CompoundAlreadyExistsError("Compound " + entry["inchikey"] + " already exists in the database")
+        else:
+            db_entry = collection.insert_one(entry)
+            collection.find_one_and_update(
+                {"inchikey": entry["inchikey"]},
+                {"$currentDate": {"modified": True}}
+            )
+            print(db_entry.inserted_id)
 
     @staticmethod
     def remove(inchikey):

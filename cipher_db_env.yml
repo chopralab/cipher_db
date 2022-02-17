@@ -1,4 +1,3 @@
-name: /home/mmuhober/.conda/envs/cent7/2020.02-py37/rdkit-env
 channels:
   - rdkit
   - anaconda
@@ -198,7 +197,7 @@ dependencies:
     - markupsafe==2.0.1
     - matplotlib==3.4.1
     - matplotlib-inline==0.1.2
-    - numpy==1.16.2
+    - numpy==1.16.5
     - parso==0.8.2
     - pexpect==4.8.0
     - pickleshare==0.7.5

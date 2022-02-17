@@ -3,6 +3,7 @@ sys.path.insert(0, "../schema/")
 import urllib
 import pymongo
 from properties import pubchem, rdkit
+from identifiers import Compounds
 
 login = open('../../utils/login.txt','r')
 username = login.readline().replace('\n','')
@@ -17,9 +18,4 @@ testing = client['cipher_aspire']['testing']
 properties = client['cipher_aspire']['properties']
 compounds = client['cipher_aspire']['compounds']
 
-rdkit_mid = "002"
-
-for document in compounds.find():
-    rdkit.insert(document["inchikey"], properties, compounds, rdkit_mid)
-
-# rdkit.insert("ATLYLVPZNWDJBW-NHYNNZIHSA-N", testing, compounds, "002")
+Compounds.insert("CCC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3", name="Fetanyl")

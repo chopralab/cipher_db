@@ -14,7 +14,6 @@ class InvalidJsonError(Exception):
 class InvalidFileError(Exception):
     pass
 
-
 class InChiKeyNotFoundError(Exception):
     pass
 
@@ -30,9 +29,6 @@ class pubchem():
     Methods
     -------
     def insert_from_file()
-    def add(inchikey)
-    def remove(inchikey)
-    def edit(inchikey, json)
     '''
 
     @staticmethod
@@ -124,7 +120,6 @@ class pubchem():
     @staticmethod
     def insert(inchikey):
         '''
-        
         '''
         pass
 
@@ -179,24 +174,30 @@ class desi_exp():
 
     Methods
     -------
-    insert(json)
-        Inserts DESI experiment information specified in the JSON file to the binding collection of the database
-    remove(inchikey)
-
-    edit(inchikey, json)
-
+    insert_from_tsv_file(fname, collection, cipher_eid)
+        Method for inserting compounds from the following tab seperated values (tsv) file into the database
     '''
 
     @staticmethod
-    def insert_from_tsv_file(fname, collection):
+    def insert_from_tsv_file(fname, collection, cipher_eid):
         '''
+        Method for inserting compounds from the following tab seperated values (tsv) file into the database
+
+        Parameters
+        ----------
+        fname: string, required
+            The name of the tsv file to be parsed
+        collection: Mongo DB collection, required
+            The database collection to insert the information into (unless testing use binding)
+        cipher_eid: string, required
+            The the cipher experiment id that corresponds to the specific desi experiment which genearted the datafile
         '''
         df = pd.read_csv(fname, sep="\t")
         for index, row in df.iterrows():
             inchikey = row["inchikey"]
             receptor = row["receptor"]
             data = {
-                    "cipher_eid": "000",
+                    "cipher_eid": cipher_eid,
                     "units": row["units"],
                     "compound_concentration": row["compound_concentration"],
                     "response": row["response"],
@@ -205,7 +206,7 @@ class desi_exp():
                     "competitor_concentration": row["competitor_concentration"],
                     "control": row["control"],
                     "ratio": row["ratio"]
-                    }
+            }
             if collection.find_one({"inchikey": inchikey}) is not None:
                 if collection.find_one({"inchikey": inchikey, "desi."+receptor: {"$exists": True}}):
                     experiments = collection.find_one({"inchikey": inchikey})["desi"][receptor]
@@ -249,9 +250,6 @@ class desi_exp():
                    upsert=True
                 )
                 print(db_entry.inserted_id)
-
-
-            
 
     @staticmethod
     def insert(json):

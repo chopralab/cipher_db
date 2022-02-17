@@ -68,9 +68,10 @@ def insert_pubchem_data():
 def insert_desi_data():
     desi_data_path = "../data/DESI/DESI_RESULTS_27Jan2022.tsv"
     test_path = "../data/DESI/test.tsv"
+    cipher_eid = "000"
     print(exists(desi_data_path))
     if exists(desi_data_path):
-        desi_exp.insert_from_tsv_file(test_path, testing)
+        desi_exp.insert_from_tsv_file(desi_data_path, binding, cipher_eid)
 
 def main():
     insert_desi_data()

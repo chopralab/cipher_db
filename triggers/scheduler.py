@@ -34,3 +34,7 @@ features = client['cipher_aspire']['features']
 
 # Website Login
 users = client['cipher_aspire']['users']
+
+# Testing
+testing = client['cipher_aspire']['testing']
+
