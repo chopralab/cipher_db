@@ -37,7 +37,7 @@ class TreeBuilder():
         return resp.json()
 
 if __name__ == '__main__':
-    HOST = 'http://XX.XX.XX.XX' # Replace with your address with ASKCOS
+    HOST = 'http://35.203.15.8' # Replace with your address with ASKCOS
 
     # Create the tree builder
     tb = TreeBuilder(HOST)
