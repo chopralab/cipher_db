@@ -12,10 +12,10 @@ ASKCOS_HOST = "https://35.203.15.8"
 USERNAME = "cipher"
 PASSWORD = "password"
 
+#TODO(degraff): these environment variables will need to be set properly on the machine
 os.environ["ASKCOS_HOST"] = ASKCOS_HOST
 os.environ["ASKCOS_USERNAME"] = USERNAME
 os.environ["ASKCOS_PASSWORD"] = PASSWORD
-
 
 class TreeBuilder:
     AUTHENTICATION_ENDPOINT = "/api/v2/token-auth/"

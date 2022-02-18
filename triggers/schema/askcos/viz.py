@@ -110,12 +110,8 @@ def tree_to_image(tree, path):
     root = tree["smiles"]
     edges = get_edges(tree)
 
-    try:
-        d_smi_img, graph = build_graph(root, edges, "ortho")
-        graph.render(outfile=path, cleanup=True)
-    except:
-        d_smi_img, graph = build_graph(tree["smiles"], edges)
-        graph.render(outfile=path, cleanup=True)
+    d_smi_img, graph = build_graph(root, edges, "ortho")
+    graph.render(outfile=path, cleanup=True)
 
     # for img_path in d_smi_img.values():
     #     os.remove(img_path)

@@ -1,3 +1,9 @@
+from tkinter.tix import Tree
+from triggers.schema.askcos import TreeBuilder, tree_to_image 
+
+
+tb = TreeBuilder()
+
 class askcos():
     '''
     Class for interacting with ASKCOS structs in the reactivity collection of the database
