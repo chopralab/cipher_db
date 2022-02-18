@@ -1,20 +1,30 @@
-import json
-from pprint import pprint
-import os
-from typing import Set
+from pathlib import Path
+import tempfile
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 import graphviz
 from rdkit import Chem
 from rdkit.Chem import Draw
 
+NODE_ATTRS = dict(label="", shape="rect", style="square", weight="4", penwidth="2")
+EDGE_ATTRS = dict(penwidth="2")
 
-def clean_tree(tree):
-    """clean a retroysynthetic tree json into only smiles and children"""
+TMP_DIR = Path(tempfile.gettempdir()) / "tree_builder_assets"
+TMP_DIR.mkdir(exist_ok=True, parents=True)
+
+DRAW_OPTIONS = Draw.rdMolDraw2D.MolDrawOptions()
+DRAW_OPTIONS.bondLineWidth = 6
+DRAW_OPTIONS.fixedBondLength = 20
+DRAW_OPTIONS.minFontSize = 16
+DRAW_OPTIONS.useBWAtomPalette()
+DRAW_OPTIONS.scaleBondWidth = True
+
+
+def clean_tree(tree: Dict) -> Optional[Dict]:
+    """clean a retroysynthetic tree json into only smiles and children. None if cleaning failed"""
     if "children" in tree and "is_reaction" in tree:
-        children = []
-        for child in tree["children"]:
-            children.append(clean_tree(child))
-        return children
+        return [clean_tree(child) for child in tree["children"]]
+
     elif "children" in tree and "smiles" in tree:
         if len(tree["children"]) == 1:
             children = clean_tree(tree["children"][0])
@@ -23,14 +33,14 @@ def clean_tree(tree):
             return {"smiles": tree["smiles"]}
         else:
             print("Error with format")
-            return -1
+            return None
     else:
         print(tree)
         print("Error with format...")
-        return -1
+        return None
 
 
-def get_edges(tree, parent=None):
+def get_edges(tree: Dict, parent: Optional[str] = None):
     """given a tree in the cleaned format, returns a list of edges"""
     smi = tree["smiles"]
     edges = []
@@ -46,7 +56,7 @@ def get_edges(tree, parent=None):
         return edges
 
 
-def get_leaves(edges, nodes) -> Set:
+def get_leaves(edges: List[Tuple], nodes: Iterable[str]) -> Set:
     """given a list of edges, finds nodes with no children"""
     children = set(nodes)
     for e in edges:
@@ -57,93 +67,58 @@ def get_leaves(edges, nodes) -> Set:
     return children
 
 
-def gen_viz(root: str, edges, splines="none"):
-    """generate a graph visualization from the edges of a retrosynthetic tree"""
-    unismis = set()
+def build_graph(root: str, edges: List[Tuple], splines="none"):
+    """build a graph from the edges of a retrosynthetic tree"""
+    parents, children = zip(*edges)
+    d_child_parent = dict(zip(children, parents))
+    parents = set(parents)
+
+    unique_smis = {*parents, *children}
+    leaves = get_leaves(edges, unique_smis)
+
     d_smi_img = {}
-
-    for e in edges:
-        unismis.add(e[0])
-        unismis.add(e[1])
-
-    for smi in unismis:
+    for smi in unique_smis:
         mol = Chem.MolFromSmiles(smi)
-        filename = smi.replace("/", "%2F")
-        Draw.MolToFile(mol, filename + ".png")
-        d_smi_img[smi] = filename + ".png"
+        img_path = str((TMP_DIR / smi.replace("/", "%2F")).with_suffix(".png"))
+        Draw.MolToFile(mol, img_path, (250, 250), options=DRAW_OPTIONS)
+        d_smi_img[smi] = img_path
 
-    if splines == "ortho":
-        graph = graphviz.Digraph(format="png", graph_attr={"splines": splines})
-    else:
-        graph = graphviz.Digraph(format="png")
+    graph = graphviz.Digraph(
+        format="png",
+        graph_attr={"splines": splines},
+        node_attr=NODE_ATTRS,
+        edge_attr=EDGE_ATTRS
+    )
 
-    parents = set()
-    leaves = get_leaves(edges, unismis)
-    pprint(edges, compact=False)
-    print(unismis)
-    print(leaves)
-    for e in edges:
-        # print(e)
-        graph.node(
-            e[0],
-            label="",
-            image=d_smi_img[e[0]],
-            shape="rect",
-            style="rounded",
-            color="darkred" if e[0] == root else "darkblue",
-        )
-        graph.node(f"d{e[0]}", label="", width="0", height="0")
+    for smi in parents:
+        graph.node(smi, image=d_smi_img[smi], color="darkred" if smi == root else "darkblue")
+        graph.node(f"{smi}-branch", label="", width="0", height="0")
+        graph.edge(smi, f"{smi}-branch", arrowhead="none")
 
-        if e[0] not in parents:
-            parents.add(e[0])
-            graph.edge(e[0], f"d{e[0]}", arrowhead="none")
-
-        if e[1] in leaves:
+    for smi in children:
+        if smi not in parents:
             graph.node(
-                e[1],
-                label="",
-                image=d_smi_img[e[1]],
-                shape="rect",
-                style="rounded",
-                color="darkgreen",
+                smi, image=d_smi_img[smi], color="darkgreen" if smi in leaves else "darkblue",
             )
-        else:
-            graph.node(
-                e[1],
-                label="",
-                image=d_smi_img[e[1]],
-                shape="rect",
-                style="rounded",
-                color="darkblue",
-            )
-        graph.edge(f"d{e[0]}", e[1])
-
-
+        parent = d_child_parent[smi]
+        graph.edge(f"{parent}-branch", smi)
 
     return d_smi_img, graph
 
 
-def traverse_tree(tree):
-    graph = graphviz.Digraph(format="png")
-    for k, v in tree.items():
-        if k == "smiles":
-            pass
-
-
 def tree_to_image(tree, path):
-    tree = clean_tree(tree)
+    root = tree["smiles"]
     edges = get_edges(tree)
 
-    # print(json.dumps(tree, indent=4))
     try:
-        d_smi_img, graph = gen_viz(tree["smiles"], edges, "ortho")
-        graph.render(path)
+        d_smi_img, graph = build_graph(root, edges, "ortho")
+        graph.render(outfile=path, cleanup=True)
     except:
-        d_smi_img, graph = gen_viz(tree["smiles"], edges)
-        graph.render(path)
+        d_smi_img, graph = build_graph(tree["smiles"], edges)
+        graph.render(outfile=path, cleanup=True)
 
-    for v in d_smi_img.values():
-        os.remove(v)
+    # for img_path in d_smi_img.values():
+    #     os.remove(img_path)
 
     return graph
 
@@ -221,5 +196,5 @@ if __name__ == "__main__":
         "ppg": 0.0,
     }
 
-    graph = tree_to_image(tree, "test")
+    graph = tree_to_image(clean_tree(tree), "test.png")
     # print(graph)
