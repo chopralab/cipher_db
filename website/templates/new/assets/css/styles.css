@@ -1,0 +1,18 @@
+.sidenav a:hover {
+  color: blue;
+}
+
+.prot-names {
+  writing-mode: vertical-rl;
+}
+
+.loading {
+  color: grey;
+  font-size: 20px;
+  text-align: center;
+}
+
+.four-tabs {
+  color: grey;
+}
+
