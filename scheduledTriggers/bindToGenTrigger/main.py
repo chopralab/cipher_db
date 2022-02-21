@@ -70,3 +70,4 @@ def bindToGenTrigger(event, context):
                     print("WARNING: Unable to update using name: ", mol_data.get("name"))
             else:
                 print("WARNING: No smiles or name field in binding data")
+                
