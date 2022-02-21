@@ -8,7 +8,8 @@ on:
   push:
     paths:
       - 'scheduledTriggers/**'
-      
+      - '.github/**'
+
 env:
   PROJECT: aspire-challenge
 
@@ -41,6 +42,7 @@ jobs:
           source_dir: scheduledTriggers/bindToGenTrigger
           event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
           event_trigger_resource: projects/aspire-challenge/topics/BindToGenScheduler
+        continue-on-error: true
           
       - name: deploy cloud function
         id: deploy-background-function2
@@ -53,5 +55,6 @@ jobs:
           source_dir: scheduledTriggers/threeNearestNeigh
           event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
           event_trigger_resource: projects/aspire-challenge/topics/BindToGenScheduler
+        continue-on-error: true
           
         
