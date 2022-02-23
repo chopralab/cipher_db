@@ -24,3 +24,6 @@ test/*
 /data/CHEMBL/*
 
 *.png
+*.txt
+*.gz
+*.pkl

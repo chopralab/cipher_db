@@ -1,3 +1,4 @@
+import json
 import os
 from pprint import pprint
 import requests
@@ -12,14 +13,16 @@ ASKCOS_HOST = "https://35.203.15.8"
 USERNAME = "cipher"
 PASSWORD = "password"
 
-#TODO(degraff): these environment variables will need to be set properly on the machine
+# TODO(degraff): these environment variables will need to be set properly on the machine
 os.environ["ASKCOS_HOST"] = ASKCOS_HOST
 os.environ["ASKCOS_USERNAME"] = USERNAME
 os.environ["ASKCOS_PASSWORD"] = PASSWORD
 
-class TreeBuilder:
+
+class AskcosClient:
     AUTHENTICATION_ENDPOINT = "/api/v2/token-auth/"
     TREE_BUILDER_ENDPOINT = "/api/v2/tree-builder/"
+    SC_SCORE_ENDPOINT = "/api/v2/scscore/"
     TASK_RETRIEVAL_ENDPOINT = "/api/v2/celery/task/"
 
     def __init__(
@@ -39,7 +42,7 @@ class TreeBuilder:
             self.authenticate()
 
     def authenticate(self):
-        url = self.host + TreeBuilder.AUTHENTICATION_ENDPOINT
+        url = self.host + AskcosClient.AUTHENTICATION_ENDPOINT
         resp = requests.post(
             url,
             data={
@@ -68,7 +71,7 @@ class TreeBuilder:
             the JSON dictionaries corresponding to retrosynthetic trees of the tree builder
             request. None if the tree builder job failed for any reason
         """
-        url = self.host + TreeBuilder.TREE_BUILDER_ENDPOINT
+        url = self.host + AskcosClient.TREE_BUILDER_ENDPOINT
         if params is None:
             params = dict(smiles=smi, **self.params)
         else:
@@ -85,7 +88,7 @@ class TreeBuilder:
         return self.get_result(task_id)
 
     def get_result(self, task_id) -> Optional[List[Dict]]:
-        url = self.host + TreeBuilder.TASK_RETRIEVAL_ENDPOINT + f"{task_id}/"
+        url = self.host + AskcosClient.TASK_RETRIEVAL_ENDPOINT + f"{task_id}/"
 
         start = time.time()
         while True:
@@ -99,13 +102,24 @@ class TreeBuilder:
 
             time.sleep(self.interval)
 
+    def sc_score(self, smi: str) -> float:
+        url = self.host + AskcosClient.SC_SCORE_ENDPOINT
+        try:
+            resp = requests.post(url, data={"smiles": smi}, timeout=20, verify=False)
+        except requests.Timeout:
+            print(f"Error submitting tree job for SMILES: {smi}")
+            return None
+
+        return resp.json()["score"]
+
 
 if __name__ == "__main__":
     params = {"version": 1, "expansion_time": 60}
-    tb = TreeBuilder(None, params)
-    smi = "CC(=O)Nc1ccc(O)cc1"
+    client = AskcosClient(None, params)
+    smi = "CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1"
 
-    trees = tb.get_trees(smi)
-    pprint(trees)
+    trees = client.get_trees(smi)
+    print(json.dumps(trees, indent=2))
 
+    print(client.sc_score(smi))
     exit()

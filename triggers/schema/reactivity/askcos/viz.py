@@ -79,15 +79,12 @@ def build_graph(root: str, edges: List[Tuple], splines="none"):
     d_smi_img = {}
     for smi in unique_smis:
         mol = Chem.MolFromSmiles(smi)
-        img_path = str((TMP_DIR / smi.replace("/", "%2F")).with_suffix(".png"))
+        img_path = str(TMP_DIR / f'{smi.replace("/", "%2F")}.png')
         Draw.MolToFile(mol, img_path, (250, 250), options=DRAW_OPTIONS)
         d_smi_img[smi] = img_path
 
     graph = graphviz.Digraph(
-        format="png",
-        graph_attr={"splines": splines},
-        node_attr=NODE_ATTRS,
-        edge_attr=EDGE_ATTRS
+        format="png", graph_attr={"splines": splines}, node_attr=NODE_ATTRS, edge_attr=EDGE_ATTRS
     )
 
     for smi in parents:
@@ -98,7 +95,7 @@ def build_graph(root: str, edges: List[Tuple], splines="none"):
     for smi in children:
         if smi not in parents:
             graph.node(
-                smi, image=d_smi_img[smi], color="darkgreen" if smi in leaves else "darkblue",
+                smi, image=d_smi_img[smi], color="darkgreen" if smi in leaves else "darkblue"
             )
         parent = d_child_parent[smi]
         graph.edge(f"{parent}-branch", smi)
