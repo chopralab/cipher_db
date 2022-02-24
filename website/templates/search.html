@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100vh; overflow: hidden;">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>aspire</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/fonts/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/css/styles.css') }}">
+</head>
+
+<body style="height: 100vh;background: rgb(215,215,215);">
+    <div id="background" style="height: 100vh;">
+        <nav class="navbar navbar-light navbar-expand-md" style="background: var(--bs-gray-800);">
+            <div class="container-fluid"><a class="navbar-brand" href="/" style="color: white;">CipherDB</a><button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-1"><span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+                <div class="collapse navbar-collapse" id="navcol-1">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link active" href="/" style="color: grey;">About</a></li>
+                        <li class="nav-item"><a class="nav-link" href="search" style="color: grey;">Search</a></li>
+                        <li class="nav-item"><a class="nav-link" href="contact" style="color: grey;">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="row" data-aos="fade-up" style="color: rgb(33, 37, 41);background: white;border-radius: 25px;padding: 15px;margin-right: 10vh;margin-left: 10vh;margin-top: 5vh;">
+            <div class="col justify-content-center">
+                <p style="color: grey;font-size: 40px;text-align: left;">Search compounds</p>
+                <div class="input-group" style="margin-bottom: 10px;"><input class="form-control" type="text" id="search" placeholder="Enter compound here..." autocomplete="off"><button class="btn btn-primary border-dark" id="button" type="button" style="background: var(--bs-gray-800);"><i class="fa fa-search"></i></button></div>
+                <hr>
+                <div id="results" style="height: 62vh;overflow: scroll;overflow-x: hidden;"></div>
+            </div>
+        </div>
+    </div><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.cells.min.js"></script>
+<script>
+    /*
+VANTA.CELLS({
+  el: "#background",
+  mouseControls: true,
+  touchControls: true,
+  gyroControls: false,
+  minHeight: 200.00,
+  minWidth: 200.00,
+  scale: 1.00,
+  size: 3.60
+})
+*/ 
+</script><script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+    function generateData(cols,bounds){
+        let vals = [];
+        for(let i = 0; i < cols; i++){
+            vals.push(Math.random() * (bounds.max - bounds.min) + bounds.min);
+        }
+        return vals;
+    }
+    
+    
+    function renderBiosig(cmpdName,inchi){
+        var options = {
+          series: [
+          {
+            name: 'Naloxone',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          },
+          {
+            name: 'Desired biosignature',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          }
+        ],
+          chart: {
+          height: 350,
+          type: 'heatmap',
+        },
+        plotOptions: {
+          heatmap: {
+            shadeIntensity: 0.5,
+            radius: 0,
+            useFillColorAsStroke: true,
+            colorScale: {
+              ranges: [{
+                  from: -30,
+                  to: 5,
+                  name: 'Partial agonism',
+                  color: '#00A100'
+                },
+                {
+                  from: 6,
+                  to: 20,
+                  name: 'Agonism',
+                  color: '#128FD9'
+                },
+                {
+                  from: 21,
+                  to: 45,
+                  name: 'Antagonism',
+                  color: '#FFB200'
+                },
+                {
+                  from: 46,
+                  to: 55,
+                  name: 'No effect',
+                  color: '#050505'
+                }
+              ]
+            }
+          }
+        },
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          width: 1
+        },
+        title: {
+          text: 'Naloxone — Last updated 1/1/2022'
+        },
+         xaxis: {
+             type: 'category',
+             tickPlacement: 'between',
+             axisTicks: {
+                show: true
+             },
+      tickAmount: 9,
+      range: 9,
+      labels: {
+        show: true,
+        rotate: -90,
+        rotateAlways: true,
+        formatter: function(value,timestamp,opts){
+            console.log(value);
+            return ["MOR","DOR","KOR","NOR","D2DD","D2LDR","D3DR","NMDAR","AMPAR"][value-1]
+        }
+      }
+   }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#naloxone-biosig"), options);
+        chart.render();
+    }
+    renderBiosig("","");
+</script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+    var resultsList = document.getElementById('results');
+    var response = null; 
+    var query;
+    $( "#button" ).click(function() {
+    //alert( "Handler for .click() called." );
+    //loading();
+    //gather text from field 
+    query = document.getElementById('search').value;
+    response = null;
+    load(query);
+    console.log("searching...");
+    });
+    function loading(){
+        var loadingContent = document.createElement('div');
+        loadingContent.innerHTML = '<p class="loading" id="loading">Loading.</p>'
+        resultsList.prepend(loadingContent);
+        setTimeout(function(){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading..</p>'
+        }, 1000); 
+        setTimeout(function(){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading...</p>'
+        }, 2000); 
+        setTimeout(function(){
+            document.getElementById("loading").remove();
+        }, 3000);
+    }
+    const timer = ms => new Promise(res => setTimeout(res, ms))
+    async function load(query){
+        //tomorrow basically take the input of the text bar and use this to randomly generate a bunch of results after a brief loading animation and display them 
+        var loadingContent = document.createElement('div');
+        loadingContent.innerHTML = '<p class="loading" id="loading">Loading.</p>'
+        resultsList.prepend(loadingContent);
+        var inc = 0;
+        while(response == null){
+            setTimeout(function(){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading..</p>'
+            }, 1000); 
+            setTimeout(function(){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading...</p>'
+            }, 2000); 
+            setTimeout(function(){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading</p>'
+            }, 3000); 
+            setTimeout(function(){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading.</p>'
+            }, 4000); 
+            await timer(4000);
+            inc++;
+            if (inc == 2){
+                response = "something";
+                document.getElementById("loading").remove();
+            }
+        }
+        generateDemo(query);
+    }
+    function search(){
+        var term = document.getElementById('search').value;
+        queryJSON = {
+            "term": term
+        };
+        $.ajax({
+            url: '/search',
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            datatype: "json",
+            data: JSON.stringify(queryJSON),
+            success: function (data) {
+                console.log("Recieving search results: " + JSON.stringify(data));
+                response = data;
+                document.getElementById("loading").remove();
+            },
+            error: function () {
+                console.log('Error');
+            }
+        });
+    }
+    
+    function displayToggle(cmpdName,toggle){
+        var props = document.getElementById(cmpdName+"-props");
+        var biosig = document.getElementById(cmpdName+"-biosig");
+        var assay = document.getElementById(cmpdName+"-assays");
+        var synth = document.getElementById(cmpdName+"-synth");
+        if(toggle == "props"){
+            props.style.display = "block";
+            biosig.style.display = "none";
+            assay.style.display = "none";
+            synth.style.display = "none";
+        }
+        if(toggle == "biosig"){
+            props.style.display = "none";
+            biosig.style.display = "block";
+            assay.style.display = "none";
+            synth.style.display = "none";
+        }
+        if(toggle == "assay"){
+            props.style.display = "none";
+            biosig.style.display = "none";
+            assay.style.display = "block";
+            synth.style.display = "none";
+        }
+        if(toggle == "synth"){
+            props.style.display = "none";
+            biosig.style.display = "none";
+            assay.style.display = "none";
+            synth.style.display = "block";
+        }
+    }
+    
+    function renderBiosig(cmpdName,inchi){
+        var options = {
+          series: [
+          {
+            name: 'Naloxone',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          },
+          {
+            name: 'Desired biosignature',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          }
+        ],
+          chart: {
+          height: 350,
+          type: 'heatmap',
+        },
+        plotOptions: {
+          heatmap: {
+            shadeIntensity: 0.5,
+            radius: 0,
+            useFillColorAsStroke: true,
+            colorScale: {
+              ranges: [{
+                  from: -30,
+                  to: 5,
+                  name: 'Partial agonism',
+                  color: '#00A100'
+                },
+                {
+                  from: 6,
+                  to: 20,
+                  name: 'Agonism',
+                  color: '#128FD9'
+                },
+                {
+                  from: 21,
+                  to: 45,
+                  name: 'Antagonism',
+                  color: '#FFB200'
+                },
+                {
+                  from: 46,
+                  to: 55,
+                  name: 'No effect',
+                  color: '#050505'
+                }
+              ]
+            }
+          }
+        },
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          width: 1
+        },
+        title: {
+          text: cmpdName + ' — Last updated 1/1/2022'
+        },
+         xaxis: {
+             type: 'category',
+             tickPlacement: 'between',
+             axisTicks: {
+                show: true
+             },
+      tickAmount: 9,
+      range: 9,
+      labels: {
+        show: true,
+        rotate: -90,
+        rotateAlways: true,
+        formatter: function(value,timestamp,opts){
+            console.log(value);
+            return ["MOR","DOR","KOR","NOR","D2DD","D2LDR","D3DR","NMDAR","AMPAR"][value-1]
+        }
+      }
+   }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#"+cmpdName+"-biosig"), options);
+        chart.render();
+    }
+    
+    function generateDemo(query){
+        var numEntries = Math.floor(Math.random() * (10 - 5) + 5)
+        let entries = [];
+        var res = document.getElementById('results');
+        for(let i = 0; i < numEntries; i++){
+            var cmpdName = query + String(Math.floor(Math.random() * (10 - 5) + 5));
+            var entry = document.createElement("div");
+            entry.innerHTML = '<div class="row" id="'+cmpdName+'" style="border-radius: 25px;border-color: var(--bs-indigo);"><div class="col-3 d-xl-flex justify-content-xl-end"><img src="./aspire_files/Screen Shot 2022-01-01 at 3.47.10 PM.png" width="200px" height="200px"></div><div class="col-9"><p style="color: grey;font-size: 30px;text-align: left;margin-bottom: 5px;">'+cmpdName+'</p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">SMILES<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">C=CCN1CCC23C4C(=O)CCC2(C1CC5=C3C(=C(C=C5)O)O4)O<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">InChI Key<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">UZHSEJADLWPNLE-GRGSLBFTSA-N<br></p><div class="container"><div class="row"><div class="col-md-3"><button class="btn btn-primary border-white collapsed" type="button" style="width: 100%;background: var(--bs-gray-800);border-radius: 0px;border-style: none;" data-bs-toggle="collapse" data-bs-target="#'+cmpdName+'-collapse" aria-expanded="false" aria-controls="'+cmpdName+'-collapse" onclick="displayToggle(&#39;'+cmpdName+'&#39;,&#39;props&#39;)">Properties</button></div><div class="col-md-3"><button class="btn btn-primary border-white collapsed" type="button" style="width: 100%;background: var(--bs-gray-800);border-radius: 0px;border-style: none;" data-bs-toggle="collapse" data-bs-target="#'+cmpdName+'-collapse" aria-expanded="false" aria-controls="'+cmpdName+'-collapse" onclick="displayToggle(&#39;'+cmpdName+'&#39;,&#39;biosig&#39;)">Biosignature</button></div><div class="col-md-3"><button class="btn btn-primary border-white collapsed" type="button" style="width: 100%;background: var(--bs-gray-800);border-radius: 0px;border-style: none;" data-bs-toggle="collapse" data-bs-target="#'+cmpdName+'-collapse" aria-expanded="false" aria-controls="'+cmpdName+'-collapse" onclick="displayToggle(&#39;'+cmpdName+'&#39;,&#39;assay&#39;)">Assays</button></div><div class="col-md-3"><button class="btn btn-primary border-white collapsed" type="button" style="width: 100%;background: var(--bs-gray-800);border-radius: 0px;border-style: none;" data-bs-toggle="collapse" data-bs-target="#'+cmpdName+'-collapse" aria-expanded="false" aria-controls="'+cmpdName+'-collapse" onclick="displayToggle(&#39;'+cmpdName+'&#39;,&#39;synth&#39;)">Synthesis</button></div></div></div><div class="row" style="border-style: none;"><div class="col" style="border-style: none;"><div class="row"><div class="col"><div id="'+cmpdName+'-collapse" class="collapse" style="padding: 10px;"><div id="'+cmpdName+'-biosig" style="min-height: 365px; display: none;"><div id="apexchartsqfpbc9xf" class="apexcharts-canvas apexchartsqfpbc9xf" style="width: 0px; height: 350px;"><svg id="SvgjsSvg1181" width="0" height="350" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev" class="apexcharts-svg" xmlns:data="ApexChartsNS" transform="translate(0, 0)" style="background: transparent;"><g id="SvgjsG1184" class="apexcharts-annotations"></g><g id="SvgjsG1183" class="apexcharts-inner apexcharts-graphical"><defs id="SvgjsDefs1182"></defs></g></svg><div class="apexcharts-legend"></div></div></div><div id="'+cmpdName+'-props" style="display: block;"><div class="row"><div class="col"><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">InChI<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">InChI=1S/C19H21NO4/c1-2-8-20-9-7-18-15-11-3-4-12(21)16(15)24-17(18)13(22)5-6-19(18,23)14(20)10-11/h2-4,14,17,21,23H,1,5-10H2/t14-,17+,18+,19-/m1/s1<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Molecular Formula<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">CAS<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Molecular Weight<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Hydrogen Bond Donor Count<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Hydrogen Bond Acceptor Count<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">logP</p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Bioassay Link</p></div></div></div><div id="'+cmpdName+'-assays"><div class="row"><div class="col"><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">InChI<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">InChI=1S/C19H21NO4/c1-2-8-20-9-7-18-15-11-3-4-12(21)16(15)24-17(18)13(22)5-6-19(18,23)14(20)10-11/h2-4,14,17,21,23H,1,5-10H2/t14-,17+,18+,19-/m1/s1<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Molecular Formula<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">CAS<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Molecular Weight<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Hydrogen Bond Donor Count<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Hydrogen Bond Acceptor Count<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">logP</p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Bioassay Link</p></div></div></div><div id="'+cmpdName+'-synth"></div></div></div></div></div></div></div><div class="col"><hr></div></div>'
+            res.appendChild(entry);
+            renderBiosig(cmpdName,"");
+        }
+        
+        return vals;
+    }
+</script>
+    <script src="{{ url_for('static', filename = 'assets/bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/bs-init.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+</body>
+
+</html>

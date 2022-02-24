@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100vh;">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>aspire</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/fonts/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/css/styles.css') }}">
+</head>
+
+<body style="height: 100vh;background: rgb(215,215,215);">
+    <div id="background" style="height: 100vh;">
+        <div style="height: 100vh;">
+            <nav class="navbar navbar-light navbar-expand-md" style="background: var(--bs-gray-800);color: rgb(33, 37, 41);">
+                <div class="container-fluid"><a class="navbar-brand" href="/" style="color: white;">CipherDB</a><button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-1"><span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+                    <div class="collapse navbar-collapse" id="navcol-1">
+                        <ul class="navbar-nav">
+                            <li class="nav-item"><a class="nav-link active" href="/" style="color: grey;">About</a></li>
+                            <li class="nav-item"><a class="nav-link" href="search" style="color: grey;">Search</a></li>
+                            <li class="nav-item"><a class="nav-link" href="contact" style="color: grey;">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div class="row" style="color: rgb(33, 37, 41);background: transparent;border-radius: 25px;padding: 30px;margin-left: 10vh;margin-top: 2vh;height: 60vh;">
+                <div class="col-5" data-aos="fade-up" style="background: white;border-radius: 20px;padding: 20px;">
+                    <div class="row">
+                        <div class="col">
+                            <p class="text-center" style="color: grey;font-size: 40px;text-align: left;margin-bottom: 20px;">About CipherDB</p>
+                            <p style="color: grey;font-size: 24px;text-align: justify;">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col d-xl-flex justify-content-xl-center"><a class="btn btn-primary border-white" role="button" style="border-radius: 41px;background: var(--bs-gray-800);width: 300px;height: 60px;font-size: 28px;margin-top: 12vh;">Search compounds&nbsp;<i class="fa fa-search"></i></a></div>
+                    </div>
+                </div>
+                <div class="col-7 d-xl-flex justify-content-center align-items-xl-center" style="padding: 40px;">
+                    <div>
+                        <div class="row" data-aos="fade-up" style="margin-bottom: 20px;">
+                            <div class="col" style="border-radius: 20px;background: white;"><script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+<canvas id="myChart" width="700" height="300"></canvas>
+<script>
+const ctx = document.getElementById('myChart').getContext('2d');
+const myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        datasets: [{
+            label: 'Data',
+            data: [12, 19, 3, 5, 2, 3],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script></div>
+                        </div>
+                        <div class="row" data-aos="fade-up">
+                            <div class="col" style="border-radius: 20px;background: white;">
+                                <div id="biosig" style="height: 300px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="row g-0" style="color: rgb(33, 37, 41);background: transparent;border-radius: 25px;padding: 30px;margin-left: 10vh;margin-top: 2vh;height: 60vh;">
+                <div class="col-4" data-aos="fade-up" style="background: white;border-radius: 20px;padding: 20px;"></div>
+                <div class="col-6" data-aos="fade-up" style="background: white;border-radius: 20px;padding: 20px;"></div>
+                <div class="col-2" data-aos="fade-up" style="background: white;border-radius: 20px;padding: 20px;"></div>
+            </div>
+        </div>
+    </div><script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+    function generateData(cols,bounds){
+        let vals = [];
+        for(let i = 0; i < cols; i++){
+            vals.push(Math.random() * (bounds.max - bounds.min) + bounds.min);
+        }
+        return vals;
+    }
+    var options = {
+          series: [{
+            name: 'Naloxone',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          },
+          {
+            name: 'Naloxone',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          },
+          {
+            name: 'Naloxone',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          },
+          {
+            name: 'Naloxone',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          },
+          {
+            name: 'Naloxone',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          },
+          {
+            name: 'Desired biosignature',
+            data: generateData(9, {
+              min: -30,
+              max: 55
+            })
+          }
+        ],
+          chart: {
+          height: 350,
+          type: 'heatmap',
+        },
+        plotOptions: {
+          heatmap: {
+            shadeIntensity: 0.5,
+            radius: 0,
+            useFillColorAsStroke: true,
+            colorScale: {
+              ranges: [{
+                  from: -30,
+                  to: 5,
+                  name: 'Partial agonism',
+                  color: '#00A100'
+                },
+                {
+                  from: 6,
+                  to: 20,
+                  name: 'Agonism',
+                  color: '#128FD9'
+                },
+                {
+                  from: 21,
+                  to: 45,
+                  name: 'Antagonism',
+                  color: '#FFB200'
+                },
+                {
+                  from: 46,
+                  to: 55,
+                  name: 'No effect',
+                  color: '#050505'
+                }
+              ]
+            }
+          }
+        },
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          width: 1
+        },
+        title: {
+          text: 'Top hits — Last updated 1/1/2022'
+        },
+         xaxis: {
+             type: 'category',
+             tickPlacement: 'between',
+             axisTicks: {
+                show: true
+             },
+      tickAmount: 9,
+      range: 9,
+      labels: {
+        show: true,
+        rotate: -90,
+        rotateAlways: true,
+        formatter: function(value,timestamp,opts){
+            console.log(value);
+            return ["MOR","DOR","KOR","NOR","D2DD","D2LDR","D3DR","NMDAR","AMPAR"][value-1]
+        }
+      }
+   }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#biosig"), options);
+        chart.render();
+</script>
+
+    <script src="{{ url_for('static', filename = 'assets/bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'assets/js/bs-init.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+</body>
+
+</html>
