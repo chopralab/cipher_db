@@ -23,7 +23,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET','POST'])
 def index():
     if request.method == 'GET':
-        return render_template("home.html"), 200
+        return render_template("index.html"), 200
     elif request.method == 'POST':
         pass
     else:
