@@ -1,40 +1,31 @@
+from enum import Enum
 import json
 import os
-from pprint import pprint
-import requests
 import time
 from typing import Dict, List, Optional
 import urllib3
 
+import requests
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-ASKCOS_HOST = "https://35.203.15.8"
-USERNAME = "cipher"
-PASSWORD = "password"
-
-# TODO(degraff): these environment variables will need to be set properly on the machine
-os.environ["ASKCOS_HOST"] = ASKCOS_HOST
-os.environ["ASKCOS_USERNAME"] = USERNAME
-os.environ["ASKCOS_PASSWORD"] = PASSWORD
-
+class AskcosEndpoints(Enum):
+    AUTHENTICATION = "/api/v2/token-auth/"
+    TREE_BUILDER = "/api/v2/tree-builder/"
+    SC_SCORE = "/api/v2/scscore/"
+    TASK_RETRIEVAL = "/api/v2/celery/task/"
 
 class AskcosClient:
-    AUTHENTICATION_ENDPOINT = "/api/v2/token-auth/"
-    TREE_BUILDER_ENDPOINT = "/api/v2/tree-builder/"
-    SC_SCORE_ENDPOINT = "/api/v2/scscore/"
-    TASK_RETRIEVAL_ENDPOINT = "/api/v2/celery/task/"
-
     def __init__(
         self,
         host: Optional[str] = None,
-        params: Optional[Dict] = None,
+        tree_params: Optional[Dict] = None,
         timeout: int = 600,
         interval: int = 5,
         authenticate: bool = False,
     ):
         self.host = host or os.environ["ASKCOS_HOST"]
-        self.params = params.copy() if params is not None else {}
+        self.tree_params = tree_params.copy() if tree_params is not None else {}
         self.timeout = timeout
         self.interval = interval
         self.headers = {}
@@ -42,7 +33,7 @@ class AskcosClient:
             self.authenticate()
 
     def authenticate(self):
-        url = self.host + AskcosClient.AUTHENTICATION_ENDPOINT
+        url = self.host + AskcosEndpoints.AUTHENTICATION.value
         resp = requests.post(
             url,
             data={
@@ -54,31 +45,31 @@ class AskcosClient:
         token = resp.json()["token"]
         self.headers = {"Authorization": f"Bearer {token}"}
 
-    def get_trees(self, smi: str, params: Optional[Dict] = None) -> Optional[List[Dict]]:
+    def get_trees(self, smi: str, tree_params: Optional[Dict] = None) -> Optional[List[Dict]]:
         """get the retrosynthetic trees for the given smiles
 
         Parameters
         ----------
         smi : str
             the SMILES string
-        params : Optional[Dict], default=None
+        tree_params : Optional[Dict], default=None
             an optional dictionary containing the parameters of the query. If None, use the default
             parameters of this TreeBuilder
 
         Returns
         -------
         Optional[Dict]
-            the JSON dictionaries corresponding to retrosynthetic trees of the tree builder
+            the dictionaries corresponding to retrosynthetic trees of the tree builder
             request. None if the tree builder job failed for any reason
         """
-        url = self.host + AskcosClient.TREE_BUILDER_ENDPOINT
-        if params is None:
-            params = dict(smiles=smi, **self.params)
+        url = self.host + AskcosEndpoints.TREE_BUILDER.value
+        if tree_params is None:
+            tree_params = dict(smiles=smi, **self.tree_params)
         else:
-            params = dict(smiles=smi, **params)
+            tree_params = dict(smiles=smi, **tree_params)
 
         try:
-            resp = requests.post(url, data=params, timeout=20, verify=False)
+            resp = requests.post(url, data=tree_params, timeout=20, verify=False)
         except requests.Timeout:
             print(f"Error submitting tree job for SMILES: {smi}")
             return None
@@ -88,7 +79,7 @@ class AskcosClient:
         return self.get_result(task_id)
 
     def get_result(self, task_id) -> Optional[List[Dict]]:
-        url = self.host + AskcosClient.TASK_RETRIEVAL_ENDPOINT + f"{task_id}/"
+        url = self.host + AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/"
 
         start = time.time()
         while True:
@@ -103,7 +94,7 @@ class AskcosClient:
             time.sleep(self.interval)
 
     def sc_score(self, smi: str) -> float:
-        url = self.host + AskcosClient.SC_SCORE_ENDPOINT
+        url = self.host + AskcosEndpoints.SC_SCORE.value
         try:
             resp = requests.post(url, data={"smiles": smi}, timeout=20, verify=False)
         except requests.Timeout:
