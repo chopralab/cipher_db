@@ -1,5 +1,5 @@
 # Import statements
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, jsonify
 from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_binding_assays
 
 #------------------------------------------------------
@@ -36,7 +36,8 @@ def search():
         return render_template('search.html'), 200
     elif request.method == "POST":
         # Replace "naloxone" with the search term from the website frontend search bar
-        identifier = "naloxone"
+        identifier = request.json
+        #identifier = "naloxone"
         compounds_id_info = return_compounds(identifier)
         compounds_property_info = []
         compounds_assay_info = []
@@ -47,7 +48,8 @@ def search():
             compounds_assay_info.append(return_binding_assays(doc["inchikey"]))
             compounds_binding_sigs.append(return_biosignature(doc["inchikey"]))
             compounds_retro_pathways.append(return_askcos_pathways(doc["inchikey"]))
-
+            
+        return jsonify({"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways})
         # Compound id info has identifying information about each compound picked up by the search --- list(json formatted dict)
         # Compound property info has propery information from pubchem and rdkit of each compound picked up by the search --- list(json fromatted dict)
         # Compound assay info has assay information from various sources as a JSON formatted dict document --- list(json formatted dict)
