@@ -1,62 +1,60 @@
-from mongoengine import *
-
-# from triggers.schema.askcos import TreeBuilder, tree_to_image
+import mongoengine as me
 
 
-class ChemicalNode(EmbeddedDocument):
+class ChemicalNode(me.EmbeddedDocument):
     """empty class so the code can be interpreted"""
 
 
-class ReactionNode(EmbeddedDocument):
-    smiles = StringField()
-    tforms = ListField(StringField)
-    tsources = ListField(StringField)
-    template_score = FloatField()
-    plausiblity = FloatField()
-    rank = IntField()
-    num_examples = IntField()
-    necessary_reagent = StringField()
-    precursor_smiles = StringField()
-    rms_molwt = FloatField()
-    num_rings = IntField()
-    scscore = FloatField()
-    rxn_id = StringField()
-    chidren = ListField(EmbeddedDocumentField(ChemicalNode))
-    forward_score = FloatField()
-    class_num = IntField()
-    class_name = StringField()
+class ReactionNode(me.EmbeddedDocument):
+    smiles = me.StringField()
+    tforms = me.ListField(me.StringField)
+    tsources = me.ListField(me.StringField)
+    template_score = me.FloatField()
+    plausiblity = me.FloatField()
+    rank = me.IntField()
+    num_examples = me.IntField()
+    necessary_reagent = me.StringField()
+    precursor_smiles = me.StringField()
+    rms_molwt = me.FloatField()
+    num_rings = me.IntField()
+    scscore = me.FloatField()
+    rxn_id = me.StringField()
+    children = me.ListField(me.EmbeddedDocumentField(ChemicalNode))
+    forward_score = me.FloatField()
+    class_num = me.IntField()
+    class_name = me.StringField()
 
 
-class ChemicalNode(EmbeddedDocument):
-    smiles = StringField()
-    ppg = FloatField()
-    as_reactant = IntField()
-    as_product = IntField()
-    terminal = BooleanField()
-    chemical_id = StringField()
-    children = ListField(EmbeddedDocumentField(ReactionNode))
-
-    meta = {"allow_inheritance": True}
+class ChemicalNode(me.EmbeddedDocument):
+    smiles = me.StringField()
+    ppg = me.FloatField()
+    as_reactant = me.IntField()
+    as_product = me.IntField()
+    terminal = me.BooleanField()
+    chemical_id = me.StringField()
+    children = me.ListField(me.EmbeddedDocumentField(ReactionNode))
 
 
-class TreeRoot(ChemicalNode):
-    depth = IntField()
-    precursor_cost = FloatField()
-    score = FloatField()
-    cluster_id = IntField()
+class SyntheticTree(me.EmbeddedDocument):
+    depth = me.IntField()
+    precursor_cost = me.FloatField()
+    score = me.FloatField()
+    cluster_id = me.IntField()
+    root = me.EmbeddedDocumentField(ChemicalNode)
+    image = me.ImageField()
 
 
-class Retrosynthesis(Document):
-    inchikey = StringField()
-    smiles = StringField()
-    trees = ListField(EmbeddedDocumentField(TreeRoot))
+class Retrosynthesis(me.Document):
+    inchikey = me.StringField()
+    smiles = me.StringField()
+    trees = me.ListField(me.EmbeddedDocumentField(SyntheticTree))
 
 
-class Feasibility(Document):
-    inchikey = StringField()
-    smiles = StringField()
-    sc_score = FloatField()
-    sa_score = FloatField()
+class Difficulty(me.Document):
+    inchikey = me.StringField()
+    smiles = me.StringField()
+    sc_score = me.FloatField()
+    sa_score = me.FloatField()
 
 
 class askcos:
