@@ -1,7 +1,4 @@
 # Import statements
-from decimal import Decimal
-from email.mime import base
-from email.policy import default
 from flask import Flask
 from flask_pymongo import PyMongo
 from flask_mongoengine import MongoEngine
@@ -10,6 +7,8 @@ import datetime
 from gridfs import GridFS
 import codecs
 import base64
+import pymongo
+import json
 
 #------------------------------------------------------
 #--------------- Flask Initilization ------------------
@@ -17,28 +16,16 @@ import base64
 
 # Uncomment this for logging
 # logging.basicConfig(filename='logs/restful.log', level=logging.DEBUG)
-
-# Initalize the flask application
-app = Flask(__name__)
-
 # Set up Flask-Mongo DB connections
 login = open('../utils/login.txt', 'r')
 username = login.readline().replace('\n','')
 password = login.readline().replace('\n','')
 login.close()
 mongo_login = 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority'
-app.config['MONGO_URI'] = mongo_login
-app.config['MONGODB_SETTINGS'] = {
-    'host': 'mongodb+srv://' + username + ':' + password + '@aspirecluster0.hmj3q.mongodb.net/cipher_aspire?retryWrites=true&w=majority',
-    'connect': False
-}
 
-# Initilize PyMongo
-client = PyMongo(app)
-
-# Initilize Mongo Engine
-db = MongoEngine()
-db.init_app(app)
+# Initilize PyMongo and MongoEngine
+client = pymongo.MongoClient(mongo_login)
+me.connect(host=mongo_login)
 
 '''
 Compounds Schema
@@ -180,6 +167,7 @@ class pubchem_iuphar(me.EmbeddedDocument):
     protacxn = me.StringField()
     geneid = me.StringField()
     ligand = me.StringField()
+    ligandid = me.StringField()
     cid = me.StringField()
     primarytarget = me.StringField()
     type = me.StringField()
@@ -222,11 +210,11 @@ class desi_assay(me.EmbeddedDocument):
     ratio = me.DecimalField()
 
 class desi(me.EmbeddedDocument):
-    Mu = me.ListField(desi_assay)
-    Delta = me.ListField(desi_assay)
-    Sigma = me.ListField(desi_assay)
-    Kappa = me.ListField(desi_assay)
-    Nociceptin = me.ListField(desi_assay)
+    Mu = me.EmbeddedDocumentListField(desi_assay)
+    Delta = me.EmbeddedDocumentListField(desi_assay)
+    Sigma = me.EmbeddedDocumentListField(desi_assay)
+    Kappa = me.EmbeddedDocumentListField(desi_assay)
+    Nociceptin = me.EmbeddedDocumentListField(desi_assay)
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
 '''
@@ -276,20 +264,25 @@ def return_compounds(identifier):
     --------
     A JSON with all identifying information on the compound loacted in the CIPHER Database or None if it is not found
     '''
-    if Compounds.objects(name=identifier).count() > 0:
-        return Compounds.objects(name=identifier).to_json()
-    elif Compounds.objects(smiles=identifier).count() > 0:
-        return Compounds.objects(smiles=identifier).to_json()
-    elif Compounds.objects(inchikey=identifier).count() > 0:
-        return Compounds.objects(inchikey=identifier).to_json()
-    elif Compounds.objects(cid=identifier).count() > 0:
-        return Compounds.objects(cid=identifier).to_json()
-    elif Compounds.objects(inchi=identifier).count() > 0:
-        return Compounds.objects(inchi=identifier).to_json()
-    elif Compounds.objects(iupac=identifier).count() > 0:
-        return Compounds.objects(iupac=identifier).to_json()
+    if identifier.isnumeric():
+        int_id = int(identifier)
     else:
-        return None
+        int_id = -1
+
+    if Compounds.objects(name=identifier).count() > 0:
+        return json.loads(Compounds.objects(name=identifier).to_json())
+    elif Compounds.objects(smiles=identifier).count() > 0:
+        return json.loads(Compounds.objects(smiles=identifier).to_json())
+    elif Compounds.objects(inchikey=identifier).count() > 0:
+        return json.loads(Compounds.objects(inchikey=identifier).to_json())
+    elif Compounds.objects(cid=int_id).count() > 0:
+        return json.loads(Compounds.objects(cid=int_id).to_json())
+    elif Compounds.objects(inchi=identifier).count() > 0:
+        return json.loads(Compounds.objects(inchi=identifier).to_json())
+    elif Compounds.objects(iupac=identifier).count() > 0:
+        return json.loads(Compounds.objects(iupac=identifier).to_json())
+    else:
+        return []
 
 def return_properties(inchikey):
     '''
@@ -304,9 +297,12 @@ def return_properties(inchikey):
     A JSON with the chemical property information for the selected compound store in the CIPHER database
     '''
     if Properties.objects(inchikey=inchikey).count() > 0:
-        return Properties.objects(inchikey=inchikey).to_json()
+        try: 
+            return json.loads(Properties.objects(inchikey=inchikey).to_json())[0]
+        except:
+            return []
     else:
-        return None
+        return []
 
 def return_biosignature(inchikey):
     '''
@@ -321,11 +317,10 @@ def return_biosignature(inchikey):
     The CANDO biosignature of the selected compound in JSON format or None if not found
     '''
     if Binding.objects(inchikey=inchikey).count() > 0:
-        return Binding.objects(inchikey=inchikey)[0].CANDO.to_json()
+        return [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
     else:
-        return None
+        return [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
         
-
 def return_binding_assays(inchikey):
     '''
     Returns binding assay information on the selected compound
@@ -340,11 +335,12 @@ def return_binding_assays(inchikey):
     pubchem and desi binding assay information in JSON format or None if not found
     '''
     if Binding.objects(inchikey=inchikey).count() > 0:
-        pubchem = Binding.objects(inchikey=inchikey)[0].pubchem.to_json()
-        desi = Binding.objects(inchikey=inchikey)[0].desi.to_json()
-        return pubchem, desi
+        try:
+            return json.loads(Binding.objects(inchikey=inchikey).to_json())[0]
+        except:
+            return []
     else:
-        return None, None
+        return []
     
 def return_askcos_pathways(inchikey):
     '''
@@ -368,19 +364,41 @@ def return_askcos_pathways(inchikey):
         decoded_image.close()
     '''
     fs = GridFS(client.db)
-    askcos = client.db.reactivity.find_one({"inchikey": inchikey})['askcos']
+    askcos = client.db.reactivity.find_one({"inchikey": inchikey})
+    if askcos is None:
+        return []
+    askcos = askcos['askcos']
     images = []
     for num in askcos['images']:
         image = askcos['images'][num]['imageID']
         gOut = fs.get(image)
         base64_data = codecs.encode(gOut.read(), 'base64')
         image = base64_data.decode('utf-8')
-        print(image)
         images.append(image)
     return images
 
 def testing():
-    pass
+    compounds_id_info = return_compounds("Axelopran")
+    compounds_property_info = []
+    compounds_assay_info = []
+    compounds_binding_sigs = []
+    compounds_retro_pathways = []
+    for doc in compounds_id_info:
+        compounds_property_info.append(return_properties(doc["inchikey"]))
+        compounds_assay_info.append(return_binding_assays(doc["inchikey"]))
+        compounds_binding_sigs.append(return_biosignature(doc["inchikey"]))
+        compounds_retro_pathways.append(return_askcos_pathways(doc["inchikey"]))
+
+    print("Compounds:")
+    print(compounds_id_info)
+    print("Properties:")
+    print(compounds_property_info)
+    print("Assays:")
+    print(compounds_assay_info)
+    print("Binding Sigs")
+    print(compounds_binding_sigs)
+    print("Retro Paths:")
+    print(compounds_retro_pathways)        
 
 if __name__ == "__main__":
     testing()

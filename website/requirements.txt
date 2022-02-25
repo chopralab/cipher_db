@@ -1,8 +1,9 @@
+Flask==2.0.1
+Flask_API==3.0.post1
 Flask_Login==0.5.0
 flask_mongoengine==1.0.0
-Flask==2.0.1
 Flask_PyMongo==2.3.0
-pymongo==3.11.4
 Flask_RESTful==0.3.9
 Flask_SSLify==0.1.5
-Flask_API==3.0.post1
+mongoengine==0.23.1
+pymongo==3.11.4
