@@ -74,7 +74,6 @@ def get_leaves(edges: List[Tuple], nodes: Iterable[str]) -> Set[str]:
 
 
 def draw_mol(smi) -> str:
-
     mol = Chem.MolFromSmiles(smi)
     path = str(TMP_DIR / f'{smi.replace("/", "%2F")}.png')
     Draw.MolToFile(mol, path, (250, 250), options=DRAW_OPTIONS)

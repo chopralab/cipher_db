@@ -1,12 +1,13 @@
-from importlib import import_module
 import os
+from pathlib import Path
 import tempfile
 from typing import Dict
 
 import mongoengine as me
 import pymongo as pmg
-from triggers.schema.reactivity import viz
+import tomli
 
+from triggers.schema.reactivity import viz
 from triggers.schema.reactivity.client import AskcosClient
 from triggers.schema.reactivity.docs import (
     ChemicalNode,
@@ -19,7 +20,14 @@ from triggers.schema.reactivity.sascorer import SAScorer
 
 me.connect("cipher_aspire", host=os.environ["MONGO_URI"])
 MONGO_CLIENT = pmg.MongoClient(os.environ["MONGO_URI"])
-ASKCOS_CLIENT = AskcosClient(os.environ["ASKCOS_HOST"])
+
+ASKCOST_HOST = os.environ["ASKCOS_HOST"]
+if "ASKCOS_TREE_PARAMS" in os.environ:
+    TREE_PARAMS = tomli.loads(Path(os.environ["ASKCOS_TREE_PARAMS"]).read_text())
+else:
+    TREE_PARAMS = None
+ASKCOS_CLIENT = AskcosClient(ASKCOST_HOST, TREE_PARAMS)
+
 SA_SCORER = SAScorer(os.environ["FP_SCORES_PKL"])
 
 
