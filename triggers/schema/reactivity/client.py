@@ -26,7 +26,22 @@ class AskcosClient:
         interval: int = 5,
         authenticate: bool = False,
     ):
-        self.host = host or os.environ["ASKCOS_HOST"]
+        try:
+            self.host = host or os.environ["ASKCOS_HOST"]
+        except KeyError:
+            raise ValueError(
+                'arg "host" was not supplied, but ASKCOS_HOST environment variable is not set!'
+            )
+
+        resp = requests.get(self.host, verify=False)
+        if resp.status_code != 200:
+            error_msg = "ASKCOS host does not exist!"
+            if host is not None:
+                error_msg += f" Tried to connect to: {self.host}"
+            else:
+                error_msg += f" Used value of ASKCOS_HOST environment variable: {self.host}"
+            raise ValueError(error_msg)
+
         self.tree_params = tree_params.copy() if tree_params is not None else {}
         self.timeout = timeout
         self.interval = interval
@@ -62,7 +77,13 @@ class AskcosClient:
         -------
         Optional[Dict]
             the dictionaries corresponding to retrosynthetic trees of the tree builder
-            request. None if the tree builder job failed for any reason
+            request. None if the tree builder job failed for any server error
+        
+        Raises
+        ------
+        ValueError
+            if the request failed due to a client error, e.g., invalid SMILES string or bad tree
+            parameter
         """
         url = self.host + AskcosEndpoints.TREE_BUILDER.value
         if tree_params is None:
@@ -72,13 +93,17 @@ class AskcosClient:
 
         try:
             resp = requests.post(url, data=tree_params, timeout=20, verify=False)
-        except requests.Timeout:
+            resp.raise_for_status()
+        except requests.HTTPError as e:
+            if resp.json()["smiles"] != smi:
+                raise ValueError(f"Invalid SMILES string supplied! got: {smi}")
+            raise ValueError(e)
+        except requests.RequestException as e:
             print(f"Error submitting tree job for SMILES: {smi}")
+            print(e)
             return None
 
-        task_id = resp.json()["task_id"]
-
-        return self.get_result(task_id)
+        return self.get_result(resp.json()["task_id"])
 
     def get_result(self, task_id) -> Optional[List[Dict]]:
         url = self.host + AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/"
@@ -97,10 +122,17 @@ class AskcosClient:
 
     def sc_score(self, smi: str) -> float:
         url = self.host + AskcosEndpoints.SC_SCORE.value
+
         try:
             resp = requests.post(url, data={"smiles": smi}, timeout=20, verify=False)
-        except requests.Timeout:
+            resp.raise_for_status()
+        except requests.HTTPError as e:
+            if resp.json()["smiles"] != smi:
+                raise ValueError(f"Invalid SMILES string supplied! got: {smi}")
+            raise ValueError(e)
+        except requests.RequestException as e:
             print(f"Error submitting tree job for SMILES: {smi}")
+            print(e)
             return None
 
         return resp.json()["score"]
