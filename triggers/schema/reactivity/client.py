@@ -9,11 +9,13 @@ import requests
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 class AskcosEndpoints(Enum):
     AUTHENTICATION = "/api/v2/token-auth/"
     TREE_BUILDER = "/api/v2/tree-builder/"
     SC_SCORE = "/api/v2/scscore/"
     TASK_RETRIEVAL = "/api/v2/celery/task/"
+
 
 class AskcosClient:
     def __init__(
