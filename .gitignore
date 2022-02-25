@@ -154,3 +154,5 @@ test/*
 /data/OPIOID_RECEPTORS_PUBCHEM/*
 /data/DESI/*
 /data/CHEMBL/*
+
+*.png
