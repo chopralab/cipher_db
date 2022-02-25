@@ -1,6 +1,4 @@
-"""adapated from sascorer.py at
-https://github.com/rdkit/rdkit/blob/master/Contrib/SA_Score/sascorer.py
-"""
+"""adapated from https://github.com/rdkit/rdkit/blob/master/Contrib/SA_Score/sascorer.py"""
 import math
 import pickle
 import sys
@@ -11,11 +9,10 @@ from rdkit.Chem import rdMolDescriptors
 
 class SAScorer:
     def __init__(self, fp_scores_pkl):
-        data = pickle.load(open(fp_scores_pkl, "rb"))
-        self.fscores = {}
-        for i in data:
-            for j in range(1, len(i)):
-                self.fscores[i[j]] = float(i[0])
+        with open(fp_scores_pkl, "rb") as fid:
+            xss = pickle.load(fid)
+            
+        self.fscores = {x: float(xs[0]) for xs in xss for x in xs[1:]}
 
     def __call__(self, smi: str) -> float:
         return self.score(smi)
@@ -27,9 +24,9 @@ class SAScorer:
 
         score1 = 0.0
         nf = 0
-        for bit_id, v in fps.items():
+        for bid, v in fps.items():
             nf += v
-            score1 += v * self.fscores.get(bit_id, -4)
+            score1 += v * self.fscores.get(bid, -4)
         score1 /= nf
 
         num_atoms = mol.GetNumAtoms()
