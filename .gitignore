@@ -27,3 +27,4 @@ test/*
 *.txt
 *.gz
 *.pkl
+*.toml

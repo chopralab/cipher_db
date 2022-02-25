@@ -11,13 +11,13 @@ class SAScorer:
     def __init__(self, fp_scores_pkl):
         with open(fp_scores_pkl, "rb") as fid:
             xss = pickle.load(fid)
-            
+
         self.fscores = {x: float(xs[0]) for xs in xss for x in xs[1:]}
 
     def __call__(self, smi: str) -> float:
         return self.score(smi)
 
-    def score(self, smi: str):
+    def score(self, smi: str) -> float:
         mol = Chem.MolFromSmiles(smi)
         fp = rdMolDescriptors.GetMorganFingerprint(mol, 2)
         fps = fp.GetNonzeroElements()
@@ -29,36 +29,27 @@ class SAScorer:
             score1 += v * self.fscores.get(bid, -4)
         score1 /= nf
 
-        num_atoms = mol.GetNumAtoms()
-        num_chiral_centers = len(Chem.FindMolChiralCenters(mol, includeUnassigned=True))
-        num_bridgeheads = rdMolDescriptors.CalcNumBridgeheadAtoms(mol)
-        num_spiro = rdMolDescriptors.CalcNumSpiroAtoms(mol)
-        num_macrocycles = 0
+        n_atom = mol.GetNumAtoms()
+        n_chiral_center = len(Chem.FindMolChiralCenters(mol, includeUnassigned=True))
+        n_bridgehead = rdMolDescriptors.CalcNumBridgeheadAtoms(mol)
+        n_spiro = rdMolDescriptors.CalcNumSpiroAtoms(mol)
+        n_macrocycle = sum(len(x) > 8 for x in mol.GetRingInfo().AtomRings())
 
-        for x in mol.GetRingInfo().AtomRings():
-            if len(x) > 8:
-                num_macrocycles += 1
+        p_size = n_atom**1.005 - n_atom
+        p_stereo = math.log10(n_chiral_center + 1)
+        p_bridge = math.log10(n_bridgehead + 1)
+        p_spiro = math.log10(n_spiro + 1)
+        p_macrocycle = math.log10(2) if n_macrocycle > 0 else 0
 
-        sizePenalty = num_atoms**1.005 - num_atoms
-        stereoPenalty = math.log10(num_chiral_centers + 1)
-        bridgePenalty = math.log10(num_bridgeheads + 1)
-        spiroPenalty = math.log10(num_spiro + 1)
-        macrocyclePenalty = 0.0
-
-        if num_macrocycles > 0:
-            macrocyclePenalty = math.log10(2)
-
-        score2 = -(sizePenalty + stereoPenalty + spiroPenalty + bridgePenalty + macrocyclePenalty)
-
-        score3 = 0.0
-        if num_atoms > len(fps):
-            score3 = math.log(float(num_atoms) / len(fps)) * 0.5
+        score2 = -(p_size + p_stereo + p_spiro + p_bridge + p_macrocycle)
+        score3 = math.log(float(n_atom) / len(fps)) * 0.5 if n_atom > len(fps) else 0.
 
         sascore = score1 + score2 + score3
 
-        min = -4.0
-        max = 2.5
-        sascore = 11.0 - (sascore - min + 1) / (max - min) * 9.0
+        LB = -4.0
+        UB = 2.5
+        sascore = 11.0 - (sascore - LB + 1) / (UB - LB) * 9.0
+
         if sascore > 8.0:
             sascore = 8.0 + math.log(sascore + 1.0 - 9.0)
         if sascore > 10.0:
