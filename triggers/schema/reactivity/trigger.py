@@ -3,6 +3,8 @@ from pathlib import Path
 import tempfile
 from typing import Dict
 
+import warnings
+import graphviz
 import mongoengine as me
 import pymongo as pmg
 import tomli
@@ -18,7 +20,7 @@ from triggers.schema.reactivity.docs import (
 )
 from triggers.schema.reactivity.sascorer import SAScorer
 
-me.connect("cipher_aspire", host=os.environ["MONGO_URI"])
+me.connect(host=os.environ["MONGO_URI"])
 MONGO_CLIENT = pmg.MongoClient(os.environ["MONGO_URI"])
 
 ASKCOST_HOST = os.environ["ASKCOS_HOST"]
@@ -64,7 +66,8 @@ def build_chemical_node(tree: Dict) -> ChemicalNode:
     cn.as_reactant = tree["as_reactant"]
     cn.terminal = tree["terminal"]
     cn.chemical_id = tree["id"]
-    cn.children = [build_rxn_node(child) for child in tree["children"]]
+    if not cn.terminal:
+        cn.rxn = build_rxn_node(tree["children"][0])
 
     return cn
 
@@ -78,7 +81,8 @@ def build_synthetic_tree(tree: Dict) -> SyntheticTree:
     st.cluster_id = tree["attributes"]["cluster_id"]
     st.root = build_chemical_node(tree)
 
-    with tempfile.NamedTemporaryFile() as fid:
+    with tempfile.NamedTemporaryFile() as fid, warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=graphviz.exceptions.UnknownSuffixWarning)
         g = viz.tree_to_graph(viz.clean_tree(tree))
         g.render(outfile=fid.name, format="png", cleanup=True)
         fid.seek(0)
@@ -93,6 +97,10 @@ def update_retrosynthesis(inchikey, smi):
     retro.inchikey = inchikey
     retro.smi = smi
     retro.trees = [build_synthetic_tree(tree) for tree in ASKCOS_CLIENT.get_trees(smi)]
+
+    retro.save()
+
+    return retro
 
 
 def update_difficulty(inchikey, smi):

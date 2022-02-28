@@ -1,14 +1,12 @@
 import mongoengine as me
 
 
-class ChemicalNode(me.EmbeddedDocument):
-    """empty class so the code can be interpreted"""
-
-
 class ReactionNode(me.EmbeddedDocument):
     smiles = me.StringField()
-    tforms = me.ListField(me.StringField)
-    tsources = me.ListField(me.StringField)
+    # this is List[ChemicalNode] but circular dependency prevents explicitly naming it
+    children = me.ListField(me.GenericEmbeddedDocumentField())
+    tforms = me.ListField(me.StringField())
+    tsources = me.ListField(me.StringField())
     template_score = me.FloatField()
     plausiblity = me.FloatField()
     rank = me.IntField()
@@ -19,7 +17,6 @@ class ReactionNode(me.EmbeddedDocument):
     num_rings = me.IntField()
     scscore = me.FloatField()
     rxn_id = me.StringField()
-    children = me.ListField(me.EmbeddedDocumentField(ChemicalNode))
     forward_score = me.FloatField()
     class_num = me.IntField()
     class_name = me.StringField()
@@ -27,12 +24,12 @@ class ReactionNode(me.EmbeddedDocument):
 
 class ChemicalNode(me.EmbeddedDocument):
     smiles = me.StringField()
+    rxn = me.EmbeddedDocumentField(ReactionNode)
     ppg = me.FloatField()
     as_reactant = me.IntField()
     as_product = me.IntField()
     terminal = me.BooleanField()
     chemical_id = me.StringField()
-    children = me.ListField(me.EmbeddedDocumentField(ReactionNode))
 
 
 class SyntheticTree(me.EmbeddedDocument):
@@ -45,13 +42,13 @@ class SyntheticTree(me.EmbeddedDocument):
 
 
 class Retrosynthesis(me.Document):
-    inchikey = me.StringField()
+    inchikey = me.StringField(primary_key=True)
     smiles = me.StringField()
-    trees = me.ListField(me.EmbeddedDocumentField(SyntheticTree))
+    trees = me.EmbeddedDocumentListField(SyntheticTree)
 
 
 class Difficulty(me.Document):
-    inchikey = me.StringField()
+    inchikey = me.StringField(primary_key=True)
     smiles = me.StringField()
     sc_score = me.FloatField()
     sa_score = me.FloatField()
@@ -85,13 +82,14 @@ class askcos:
 
 
 class sa_score:
-    """
-    Class for running synthetic accessability (SA) score module and inserting information into the reactivity collection of the database
+    """Class for running synthetic accessability (SA) score module and inserting information into
+    the reactivity collection of the database
 
     Methods
     -------
     insert(inchikey)
-        Runs the SA score module for the compound with the given InChi Key and inserts the results into the reactivity collection of the database
+        Runs the SA score module for the compound with the given InChi Key and inserts the results
+        into the reactivity collection of the database
     remove(inchikey)
         Remove the SA score struct for the compound with the given InChi Key
     """
@@ -108,13 +106,14 @@ class sa_score:
 
 
 class sc_score:
-    """
-    Class for running the SC score module and inserting the resulting information into the reactivity collection of the database
+    """Class for running the SC score module and inserting the resulting information into the
+    reactivity collection of the database
 
     Methods
     -------
     insert(inchikey)
-         Runs the SC score module for the compound with the given InChi Key and inserts the results into the reactivity collection of the database
+        Runs the SC score module for the compound with the given InChi Key and inserts the results
+        into the reactivity collection of the database
     remove(inchikey)
         Remove the SC score struct for the compound with the given InChi Key
     """
