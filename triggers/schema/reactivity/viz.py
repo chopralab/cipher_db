@@ -162,7 +162,7 @@ if __name__ == "__main__":
                                         "ppg": 1.0,
                                     },
                                 ],
-                                "smiles": "C[Mg]I.O=C(c1ccccc1)c1ccc(Cl)cc1>>CC(O)(c1ccccc1)c1ccc(Cl)cc1",
+                                "smiles": "C[Mg]I.O=C(c1ccccc1)c1ccc(Cl)cc1>>CC(O)(c1ccccc1)c1ccc(Cl)cc1",  # noqa: E501
                             }
                         ],
                         "as_reactant": 8,
@@ -181,7 +181,7 @@ if __name__ == "__main__":
                         "ppg": 5.0,
                     },
                 ],
-                "smiles": "CC(O)(c1ccccc1)c1ccc(Cl)cc1.CCN(CC)CCBr>>CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1",
+                "smiles": "CC(O)(c1ccccc1)c1ccc(Cl)cc1.CCN(CC)CCBr>>CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1",  # noqa: E501
             }
         ],
         "as_reactant": 0,

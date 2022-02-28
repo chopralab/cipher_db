@@ -42,7 +42,7 @@ class SAScorer:
         p_macrocycle = math.log10(2) if n_macrocycle > 0 else 0
 
         score2 = -(p_size + p_stereo + p_spiro + p_bridge + p_macrocycle)
-        score3 = math.log(float(n_atom) / len(fps)) * 0.5 if n_atom > len(fps) else 0.
+        score3 = math.log(float(n_atom) / len(fps)) * 0.5 if n_atom > len(fps) else 0.0
 
         sascore = score1 + score2 + score3
 

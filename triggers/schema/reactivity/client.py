@@ -78,7 +78,7 @@ class AskcosClient:
         Optional[Dict]
             the dictionaries corresponding to retrosynthetic trees of the tree builder
             request. None if the tree builder job failed for any server error
-        
+
         Raises
         ------
         ValueError
