@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 import tempfile
 from typing import Dict
-
 import warnings
+
 import graphviz
 import mongoengine as me
 import pymongo as pmg
@@ -116,11 +116,20 @@ def update_difficulty(inchikey, smi):
     return difficulty
 
 
-def difficulty_trigger():
-    feasibility = MONGO_CLIENT.cipher_aspire.feasibility
+def synthesis_trigger():
+    cpds = MONGO_CLIENT.cipher_aspire.compounds
     try:
-        with feasibility.watch([{"$match": {"operationType": "insert"}}]) as stream:
+        with cpds.watch([{"$match": {"operationType": "insert"}}]) as stream:
             for change in stream:
-                pass
+                d = change["fullDocument"]
+                inchikey = d["inchikey"]
+                smi = d["smiles"]
+
+                update_difficulty(inchikey, smi)
+                update_retrosynthesis(inchikey, smi)
     except pmg.errors.PyMongoError as e:
         print(e)
+
+
+if __name__ == "__main__":
+    synthesis_trigger()
