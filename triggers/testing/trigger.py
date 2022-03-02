@@ -217,16 +217,18 @@ def update_reactivity_tree_viz(id, coll, tree, smi, db, num):
     doc = coll.find_one_and_update(
         {"_id" : id},
         {"$set":
-            {f"askcos.images.{num}.imageID": tree_id,
-             f"askcos.images.{num}.name": smi}
-        },upsert=True
+            {
+                f"askcos.images.{num}.imageID": tree_id,
+                f"askcos.images.{num}.name": smi
+            }
+        },
+        upsert=True
     )
     os.remove(f'{smi}.png')
     os.remove(smi)
 
 def update_reactivity_tree_build(id, result, coll, db):
     filled = []
-    update = []
     for key,val in result.items():
         if key == 'smiles':
             filled.append((key,val))
@@ -247,30 +249,22 @@ def update_reactivity_tree_build(id, result, coll, db):
     with open('tree_params.json') as f:
         params = json.load(f)
     
-    # Build the tree(s) and append the results
     js = tb.build_tree(smi, params)
-    for key,val in js.items():
-        update.append((key, val))
 
     # Perform database update
-    for elem in update:
-        key = elem[0]
-        val = elem[1]
+    for key, val in js.items():
         print(key)
         print(val)
         doc = coll.find_one_and_update(
             {"_id" : id},
-            {"$set":
-                {f"askcos.{key}": val}
-            },upsert=True
+            {"$set": {f"askcos.{key}": val}},
+            upsert=True
         )
 
     if 'trees' in js:
-        counter = 0
-        for tree in js['trees']:
-            path = f'tree{counter}:{smi}'.replace('/', '%2F')
-            update_reactivity_tree_viz(id, coll, tree, path, db, str(counter))
-            counter += 1
+        for i, tree in enumerate(js['trees']):
+            path = f'tree{i}:{smi}'.replace('/', '%2F')
+            update_reactivity_tree_viz(id, coll, tree, path, db, str(i))
 
     # Perform date and time update
     doc = coll.find_one_and_update(
