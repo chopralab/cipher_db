@@ -2,44 +2,13 @@ var resultsList = document.getElementById('results');
 var response = null;
 var query;
 $( "#button" ).click(function() {
-//alert( "Handler for .click() called." );
-//loading();
-//gather text from field
+resultsList.innerHTML = "";
 query = document.getElementById('search').value;
 response = null;
 load(query);
 console.log("searching...");
 });
 
-const timer = ms => new Promise(res => setTimeout(res, ms))
-async function load(query){
-    //tomorrow basically take the input of the text bar and use this to randomly generate a bunch of results after a brief loading animation and display them
-    var loadingContent = document.createElement('div');
-    loadingContent.innerHTML = '<p class="loading" id="loading">Loading.</p>'
-    resultsList.prepend(loadingContent);
-    var inc = 0;
-    while(response == null){
-        setTimeout(function(){
-        loadingContent.innerHTML = '<p class="loading" id="loading">Loading..</p>'
-        }, 1000);
-        setTimeout(function(){
-        loadingContent.innerHTML = '<p class="loading" id="loading">Loading...</p>'
-        }, 2000);
-        setTimeout(function(){
-        loadingContent.innerHTML = '<p class="loading" id="loading">Loading</p>'
-        }, 3000);
-        setTimeout(function(){
-        loadingContent.innerHTML = '<p class="loading" id="loading">Loading.</p>'
-        }, 4000);
-        await timer(4000);
-        inc++;
-        if (inc == 2){
-            response = "something";
-            document.getElementById("loading").remove();
-        }
-    }
-    generateDemo(query);
-}
 function search(){
     var term = document.getElementById('search').value;
     queryJSON = {
@@ -54,13 +23,60 @@ function search(){
         success: function (data) {
             console.log("Recieving search results: " + JSON.stringify(data));
             response = data;
-            document.getElementById("loading").remove();
+            renderResults(response);
+            //document.getElementById("loading").remove();
         },
         error: function () {
             console.log('Error');
         }
     });
 }
+
+const timer = ms => new Promise(res => setTimeout(res, ms))
+async function load(query){
+    //tomorrow basically take the input of the text bar and use this to randomly generate a bunch of results after a brief loading animation and display them
+    search();
+    var loadingContent = document.createElement('div');
+    loadingContent.innerHTML = '<p class="loading" id="loading">Loading.</p>'
+    resultsList.prepend(loadingContent);
+    var inc = 0;
+    while(response == null){
+        setTimeout(function(){
+        if (response == null){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading..</p>';
+        } else {
+            document.getElementById("loading").remove();
+        }
+        }, 1000);
+        setTimeout(function(){
+        if (response == null){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading...</p>';
+        } else {
+            document.getElementById("loading").remove();
+        }
+        }, 2000);
+        setTimeout(function(){
+        if (response == null){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading</p>';
+        } else {
+            document.getElementById("loading").remove();
+        }
+        }, 3000);
+        setTimeout(function(){
+        if (response == null){
+            loadingContent.innerHTML = '<p class="loading" id="loading">Loading.</p>';
+        } else {
+            document.getElementById("loading").remove();
+        }
+        }, 4000);
+        await timer(4000);
+        if (response != null){
+            document.getElementById("loading").remove();
+        }
+    }
+    //generateDemo(query);
+}
+
 
 function displayToggle(cmpdName,toggle){
     var props = document.getElementById(cmpdName+"-props");
@@ -92,6 +108,14 @@ function displayToggle(cmpdName,toggle){
         synth.style.display = "block";
     }
 }
+
+function generateData(cols,bounds){
+        let vals = [];
+        for(let i = 0; i < cols; i++){
+            vals.push(Math.random() * (bounds.max - bounds.min) + bounds.min);
+        }
+        return vals;
+    }
 
 function renderBiosig(cmpdName,inchi){
     var options = {
@@ -181,6 +205,36 @@ function renderBiosig(cmpdName,inchi){
     var chart = new ApexCharts(document.querySelector("#"+cmpdName+"-biosig"), options);
     chart.render();
 }
+
+function renderResults(results){
+    var numEntries = results.ids.length;
+    let entries = results.ids;
+    let props = results.props;
+    var res = document.getElementById('results');
+    for(let i = 0; i < numEntries; i++){
+        // LATER DO NOT INDEX INTO PROPS LIST; KEY IN BY INCHI KEY
+        var cmpdName = entries[i].name;
+        var inchikey = entries[i].inchikey;
+        var smiles = entries[i].smiles;
+        var MolecularFormula = props[i].pubchem.MolecularFormula;
+        var inchi = entries[i].inchi;
+        var molwt = props[i].pubchem.ExactMass;
+        var hbonddonors = props[i].pubchem.HBondDonorCount;
+        var hbondacceptors = props[i].pubchem.HBondAcceptorCount;
+        var logp = props[i].rdkit.MolLogP;
+        //var mol = RDKitModule.get_mol(smiles);
+        //var svg = mol.get_svg();
+        var svg = "";
+        var entry = document.createElement("div");
+        entry.innerHTML = '<div class="row" id="'+cmpdName+'" style="border-radius: 25px;border-color: var(--bs-indigo);"><div class="col-3 d-xl-flex justify-content-xl-end"><img src="./aspire_files/Screen Shot 2022-01-01 at 3.47.10 PM.png" width="200px" height="200px"></div><div class="col-9"><a style="color: grey;font-size: 30px;text-align: left;margin-bottom: 5px;" href="/summary/'+inchikey+'">'+cmpdName+'</a><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">SMILES<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+smiles+'<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">InChI Key<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+inchikey+'<br></p><div class="container"><div class="row"><div class="col-md-3"><button class="btn btn-primary border-white collapsed" type="button" style="width: 100%;background: var(--bs-gray-800);border-radius: 0px;border-style: none;" data-bs-toggle="collapse" data-bs-target="#'+cmpdName+'-collapse" aria-expanded="false" aria-controls="'+cmpdName+'-collapse" onclick="displayToggle(&#39;'+cmpdName+'&#39;,&#39;props&#39;)">Properties</button></div><div class="col-md-3"><button class="btn btn-primary border-white collapsed" type="button" style="width: 100%;background: var(--bs-gray-800);border-radius: 0px;border-style: none;" data-bs-toggle="collapse" data-bs-target="#'+cmpdName+'-collapse" aria-expanded="false" aria-controls="'+cmpdName+'-collapse" onclick="displayToggle(&#39;'+cmpdName+'&#39;,&#39;biosig&#39;)">Biosignature</button></div><div class="col-md-3"><button class="btn btn-primary border-white collapsed" type="button" style="width: 100%;background: var(--bs-gray-800);border-radius: 0px;border-style: none;" data-bs-toggle="collapse" data-bs-target="#'+cmpdName+'-collapse" aria-expanded="false" aria-controls="'+cmpdName+'-collapse" onclick="displayToggle(&#39;'+cmpdName+'&#39;,&#39;assay&#39;)">Assays</button></div><div class="col-md-3"><button class="btn btn-primary border-white collapsed" type="button" style="width: 100%;background: var(--bs-gray-800);border-radius: 0px;border-style: none;" data-bs-toggle="collapse" data-bs-target="#'+cmpdName+'-collapse" aria-expanded="false" aria-controls="'+cmpdName+'-collapse" onclick="displayToggle(&#39;'+cmpdName+'&#39;,&#39;synth&#39;)">Synthesis</button></div></div></div><div class="row" style="border-style: none;"><div class="col" style="border-style: none;"><div class="row"><div class="col"><div id="'+cmpdName+'-collapse" class="collapse" style="padding: 10px;"><div id="'+cmpdName+'-biosig" style="min-height: 365px; display: none;"><div id="apexchartsqfpbc9xf" class="apexcharts-canvas apexchartsqfpbc9xf" style="width: 0px; height: 350px;"><svg id="SvgjsSvg1181" width="0" height="350" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev" class="apexcharts-svg" xmlns:data="ApexChartsNS" transform="translate(0, 0)" style="background: transparent;"><g id="SvgjsG1184" class="apexcharts-annotations"></g><g id="SvgjsG1183" class="apexcharts-inner apexcharts-graphical"><defs id="SvgjsDefs1182"></defs></g></svg><div class="apexcharts-legend"></div></div></div><div id="'+cmpdName+'-props" style="display: block;"><div class="row"><div class="col"><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">InChI<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+inchi+'<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Molecular Formula<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+MolecularFormula+'<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">CAS<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+'Not returned'+'<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Molecular Weight<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+molwt+'<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Hydrogen Bond Donor Count<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+hbonddonors+'<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Hydrogen Bond Acceptor Count<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+hbondacceptors+'<br></p><p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">logP<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+logp+'<br></p></div></div></div><div id="'+cmpdName+'-assays"><div class="row"><div class="col"></div></div></div><div id="'+cmpdName+'-synth"></div></div></div></div></div></div></div><div class="col"><hr></div></div>'
+        res.appendChild(entry);
+        
+        renderBiosig(cmpdName,"");
+    }
+    
+    return vals;
+}
+
 
 function generateDemo(query){
     var numEntries = Math.floor(Math.random() * (10 - 5) + 5)

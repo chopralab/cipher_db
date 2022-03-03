@@ -36,7 +36,7 @@ def search():
         return render_template('search.html'), 200
     elif request.method == "POST":
         # Replace "naloxone" with the search term from the website frontend search bar
-        identifier = request.json
+        identifier = request.json['term']
         print(identifier)
         #identifier = "naloxone"
         compounds_id_info = return_compounds(identifier)
@@ -68,7 +68,7 @@ def summary(inchikey):
         compounds_binding_sigs = return_biosignature(inchikey)
         compounds_retro_pathways = return_askcos_pathways(inchikey)
         # These are the same as in the search method except one layer of the lists are removed because there is only one compound now
-        return render_template("summary.html"), 200
+        return render_template("summary.html",info={"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways}), 200
     elif request.method == 'POST':
         return "<pre>" + "Request method not supported" + "</pre>", 400
     else:
