@@ -9,16 +9,16 @@ import mongoengine as me
 import pymongo as pmg
 import tomli
 
-from triggers.schema.reactivity import viz
-from triggers.schema.reactivity.client import AskcosClient
-from triggers.schema.reactivity.docs import (
+from module_askcos.utils import viz
+from module_askcos.utils.client import AskcosClient
+from module_askcos.docs.docs import (
     ChemicalNode,
     Difficulty,
     ReactionNode,
     Retrosynthesis,
     SyntheticTree,
 )
-from triggers.schema.reactivity.sascorer import SAScorer
+from module_askcos.utils.sascorer import SAScorer
 
 me.connect(host=os.environ["MONGO_URI"])
 MONGO_CLIENT = pmg.MongoClient(os.environ["MONGO_URI"])
