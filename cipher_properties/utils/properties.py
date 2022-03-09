@@ -1,5 +1,6 @@
 import json
 import requests
+import datetime
 from rdkit import Chem
 from rdkit.Chem.Descriptors import (
     ExactMolWt,
@@ -21,7 +22,7 @@ from rdkit.Chem.Lipinski import (
     NumRotatableBonds,
     RingCount,
 )
-from module_properties.utils.errors import (
+from cipher_properties.utils.errors import (
     InvalidJsonError,
     StructNotFoundError,
     InChiKeyNotFoundError,
@@ -29,8 +30,8 @@ from module_properties.utils.errors import (
     InvalidRequestError,
     InvalidSMILESError,
 )
-from module_identifiers.docs.docs import Compounds
-from module_properties.docs.docs import Properties, Pubchem, RDKit
+from cipher_identifiers.docs.docs import Compounds
+from cipher_properties.docs.docs import Properties, Pubchem, RDKit
 
 
 def __format_request_url(inchikey, selected_properties):
@@ -174,7 +175,7 @@ def insert_properties_from_smiles(smiles, properties=["All"]):
         )
 
     inchikey = Chem.MolToInchiKey(m)
-    prop = Properties(id=inchikey)
+    prop = Properties()
     prop.inchikey = inchikey
     try:
         prop.validate()
@@ -225,6 +226,7 @@ def insert_properties_from_smiles(smiles, properties=["All"]):
     pc.EffectiveRotorCount3D = data["EffectiveRotorCount3D"]
     pc.ConformerCount3D = data["ConformerCount3D"]
     pc.Fingerprint2D = data["Fingerprint2D"]
+    pc.modified = datetime.datetime.utcnow
 
     rd = RDKit()
     rd.cipher_mid = "002"
@@ -246,6 +248,7 @@ def insert_properties_from_smiles(smiles, properties=["All"]):
     rd.NumHeteroatoms = NumHeteroatoms(m)
     rd.NumRotateableBonds = NumRotatableBonds(m)
     rd.RingCount = RingCount(m)
+    rd.modified = datetime.datetime.utcnow
 
     prop.pubchem = pc
     prop.rdkit = rd

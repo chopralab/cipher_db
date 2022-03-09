@@ -7,14 +7,14 @@ if __name__ == "__main__":
     sys.path.append("../../")
 
 # Import Custom Errors
-from module_identifiers.utils.errors import (
+from cipher_identifiers.utils.errors import (
     InvalidRequestError,
     CompoundNotFoundError,
     InvalidSMILESError,
 )
 
 # Import all validation functions
-from module_identifiers.docs.docs import (
+from cipher_identifiers.docs.docs import (
     validate_smiles,
     check_inchikey_in_compounds,
     check_mid_in_models,
@@ -23,7 +23,7 @@ from module_identifiers.docs.docs import (
 )
 
 # Import ME document
-from module_identifiers.docs.docs import Compounds
+from cipher_identifiers.docs.docs import Compounds
 
 
 def get_ids_from_inchikey(inchikey):
@@ -64,7 +64,6 @@ def id_compound_from_smiles(smiles):
     if Compounds.objects.with_id(inchikey) is not None:
         return False
 
-    comp.id = inchikey
     comp.inchikey = inchikey
     comp.smiles = Chem.MolToSmiles(m, isomericSmiles=False)
     comp.inchi = Chem.MolToInchi(m)

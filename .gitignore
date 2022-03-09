@@ -150,6 +150,7 @@ test/*
 /utils/login.txt
 /utils/hash_salt.txt
 /utils/secret_key.txt
+/utils/mongo_uri_env.sh
 
 /data/OPIOID_RECEPTORS_PUBCHEM/*
 /data/DESI/*

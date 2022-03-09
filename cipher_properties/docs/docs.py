@@ -75,9 +75,6 @@ class RDKit(me.EmbeddedDocument):
 
 
 class Properties(me.Document):
-    id = me.StringField(
-        required=True, primary_key=True, validation=check_inchikey_in_compounds
-    )
-    inchikey = me.StringField(required=True)
+    inchikey = me.StringField(required=True, primary_key=True, validation=check_inchikey_in_compounds)
     pubchem = me.EmbeddedDocumentField(Pubchem)
     rdkit = me.EmbeddedDocumentField(RDKit)
