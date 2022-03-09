@@ -36,7 +36,8 @@ def search():
         return render_template('search.html'), 200
     elif request.method == "POST":
         # Replace "naloxone" with the search term from the website frontend search bar
-        identifier = request.json
+        identifier = request.json['term']
+        print(identifier)
         #identifier = "naloxone"
         compounds_id_info = return_compounds(identifier)
         compounds_property_info = []
