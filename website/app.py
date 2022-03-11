@@ -1,6 +1,9 @@
 # Import statements
 from flask import Flask, request, render_template, redirect, jsonify
 from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_binding_assays
+from utils import *
+#import rdkit.Chem.Draw
+#import rdkit.Chem as Chem
 
 #------------------------------------------------------
 #--------------- Flask Initilization ------------------
@@ -49,7 +52,16 @@ def search():
             compounds_assay_info.append(return_binding_assays(doc["inchikey"]))
             compounds_binding_sigs.append(return_biosignature(doc["inchikey"]))
             compounds_retro_pathways.append(return_askcos_pathways(doc["inchikey"]))
-            
+        for entry in compounds_property_info:
+            entry["pubchem"]["MolecularFormula"] = render_mol_formula(entry["pubchem"]["MolecularFormula"])
+        ### WIP
+        ### will be moved to utils.py
+        '''
+        for entry in compounds_id_info:
+            svg = rdkit.Chem.Draw.MolsToGridImage(Chem.MolFromSmiles(entry["smiles"]), useSVG=True)
+            entry["svg"] = svg
+        '''
+        print({"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways})
         return jsonify({"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways})
         # Compound id info has identifying information about each compound picked up by the search --- list(json formatted dict)
         # Compound property info has propery information from pubchem and rdkit of each compound picked up by the search --- list(json fromatted dict)
@@ -68,7 +80,7 @@ def summary(inchikey):
         compounds_binding_sigs = return_biosignature(inchikey)
         compounds_retro_pathways = return_askcos_pathways(inchikey)
         # These are the same as in the search method except one layer of the lists are removed because there is only one compound now
-        return render_template("summary.html",info={"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways}), 200
+        return render_template("summary.html",name=compounds_id_info[0]["name"].capitalize(),smiles=compounds_id_info[0]["smiles"],inchi=compounds_id_info[0]["inchi"],molformula=render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"]),molwt=compounds_property_info["pubchem"]["MolecularWeight"],hdc=compounds_property_info["pubchem"]["HBondDonorCount"],hac=compounds_property_info["pubchem"]["HBondAcceptorCount"],logp=compounds_property_info["rdkit"]["MolLogP"]), 200
     elif request.method == 'POST':
         return "<pre>" + "Request method not supported" + "</pre>", 400
     else:

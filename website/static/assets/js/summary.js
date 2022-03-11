@@ -1,8 +1,3 @@
-console.log(info);
-
-var title = document.getElementById('cmpdName');
-title.innerHTML = '<button class="btn btn-primary border-white float-end" type="button" style="height: 100%;background: rgb(33,37,41);">Raw JSON&nbsp;&nbsp;<i class="fa fa-clipboard"></i></button>'+info;
-
 function generateData(cols,bounds){
     let vals = [];
     for(let i = 0; i < cols; i++){

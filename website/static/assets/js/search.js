@@ -9,6 +9,10 @@ load(query);
 console.log("searching...");
 });
 
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 function search(){
     var term = document.getElementById('search').value;
     queryJSON = {
@@ -180,7 +184,7 @@ function renderBiosig(cmpdName,inchi){
       width: 1
     },
     title: {
-      text: cmpdName + ' — Last updated 1/1/2022'
+      text: capitalizeFirstLetter(cmpdName) + ' — Last updated 1/1/2022'
     },
      xaxis: {
          type: 'category',
@@ -213,7 +217,7 @@ function renderResults(results){
     var res = document.getElementById('results');
     for(let i = 0; i < numEntries; i++){
         // LATER DO NOT INDEX INTO PROPS LIST; KEY IN BY INCHI KEY
-        var cmpdName = entries[i].name;
+        var cmpdName = capitalizeFirstLetter(entries[i].name);
         var inchikey = entries[i].inchikey;
         var smiles = entries[i].smiles;
         var MolecularFormula = props[i].pubchem.MolecularFormula;
