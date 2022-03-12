@@ -3,14 +3,18 @@ import math
 import sys
 from typing import List
 
+import numpy as np
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
 
 class SAScorer:
-    def __init__(self, xss: List[List[float]]):
-
-        self.fscores = {x: xs[0] for xs in xss for x in xs[1:]}
+    def __init__(
+        self, fpscoress: List[List[float]], lower_bound: float = -4, upper_bound: float = 2.5
+    ):
+        self.fp_score = {fp: score for score, *fps in fpscoress for fp in fps}
+        self.lb = lower_bound
+        self.range = upper_bound - lower_bound
 
     def __call__(self, smi: str) -> float:
         return self.score(smi)
@@ -22,9 +26,10 @@ class SAScorer:
 
         score1 = 0.0
         nf = 0
+
         for bid, v in fps.items():
             nf += v
-            score1 += v * self.fscores.get(bid, -4)
+            score1 += v * self.fp_score.get(bid, -4)
         score1 /= nf
 
         n_atom = mol.GetNumAtoms()
@@ -44,18 +49,12 @@ class SAScorer:
 
         sascore = score1 + score2 + score3
 
-        LB = -4.0
-        UB = 2.5
-        sascore = 11.0 - (sascore - LB + 1) / (UB - LB) * 9.0
+        sascore = 11.0 - (sascore - self.lb + 1) / (self.range) * 9.0
 
-        if sascore > 8.0:
-            sascore = 8.0 + math.log(sascore + 1.0 - 9.0)
-        if sascore > 10.0:
-            sascore = 10.0
-        elif sascore < 1.0:
-            sascore = 1.0
+        if sascore > 8:
+            sascore = 8 + math.log(sascore - 8)
 
-        return sascore
+        return np.clip(sascore, 1, 10)
 
 
 if __name__ == "__main__":
