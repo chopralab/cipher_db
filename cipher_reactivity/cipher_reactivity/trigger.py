@@ -1,4 +1,4 @@
-from importilb import resources
+from importlib import resources
 import json
 import os
 import tempfile
@@ -10,9 +10,9 @@ import mongoengine as me
 import pymongo as pmg
 import tomli
 
-from triggers.schema.reactivity import viz
-from triggers.schema.reactivity.client import AskcosClient
-from triggers.schema.reactivity.docs import (
+from cipher_reactivity import viz
+from cipher_reactivity.client import AskcosClient
+from cipher_reactivity.docs import (
     ChemicalNode,
     Difficulty,
     ReactionNode,
