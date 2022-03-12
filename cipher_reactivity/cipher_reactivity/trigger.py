@@ -26,7 +26,7 @@ MONGO_CLIENT = pmg.MongoClient(os.environ["MONGO_URI"])
 
 ASKCOST_HOST = os.environ["ASKCOS_HOST"]
 try:
-    TREE_PARAMS = tomli.loads(resources.read_text("cipher_reactivity.data", "tree_builder.toml"))
+    TREE_PARAMS = tomli.loads(resources.read_text("cipher_reactivity.data", "tree_params.toml"))
 except ValueError:
     TREE_PARAMS = None
 ASKCOS_CLIENT = AskcosClient(ASKCOST_HOST, TREE_PARAMS)
