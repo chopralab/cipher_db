@@ -1,8 +1,8 @@
-from mongoengine import me
+import mongoengine as me
 import datetime
 import shortuuid
 
-from module_identifiers.docs.docs import (
+from cipher_identifiers.docs.docs import (
     validate_smiles,
     check_inchikey_in_compounds,
     check_mid_in_models,
@@ -19,12 +19,14 @@ def validate_receptor_list(var):
 class Cando(me.Document):
     #Cando ID
     id = me.StringField(required=True, primary_key=True)
+    inchikey = me.StringField(required=True)
+    smiles = me.StringField(required=True)
     # Can assign a default MID for CANDO runs if needed, check mongo engine doccumentation
     cipher_mid = me.StringField(required=True, validation=check_mid_in_models)
     cipher_bmid = me.StringField(required=True, validation=check_bmid_in_biomolecules)
     cipher_bsid = me.StringField(required=True, validation=check_bsid_in_binding_sites)
     # Can contrain a min and max value, check mongo engine doccumentation
-    interaction_score = me.DecimalFeild(required=True)
+    interaction_score = me.DecimalField(required=True)
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
 
@@ -42,14 +44,15 @@ def check_sig_id_in_biosig(var):
 
 class knn_tuple(me.EmbeddedDocument):
     inchikey = me.StringField(required=True, validation=check_inchikey_in_compounds)
+    smiles = me.StringField(required=True, validation=validate_smiles)
     # We can set min and max values here if needed
     cosine_dist = me.DecimalField(required=True)
 
 
 class KNN(me.Document):
     # Should be set to inchikey if for each compound
-    id = me.StringField(required=True, primary_key=True)
-    inchikey = me.StringField(required=True, validation=check_inchikey_in_compounds)
+    inchikey = me.StringField(required=True, primary_key=True, validation=check_inchikey_in_compounds)
+    smiles = me.StringField(required=True, validation=validate_smiles)
     cipher_sig_id = me.StringField(required=True, validation=check_sig_id_in_biosig)
     # We can probably define the max length of the list if needed
     neighbors = me.ListField(me.EmbeddedDocumentField(knn_tuple), required=True)

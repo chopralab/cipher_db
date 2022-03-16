@@ -1,6 +1,11 @@
 import json
 import requests
 import datetime
+
+if __name__ == "__main__":
+    import sys
+    sys.path.append("../../")
+
 from rdkit import Chem
 from rdkit.Chem.Descriptors import (
     ExactMolWt,
@@ -164,7 +169,7 @@ def __make_url_request(inchikey, url):
         )
 
 
-def insert_properties_from_smiles(smiles, properties=["All"]):
+def insert_properties_from_smiles(smiles, inchikey, properties=["All"]):
     try:
         m = Chem.MolFromSmiles(smiles)
     except:
@@ -174,59 +179,22 @@ def insert_properties_from_smiles(smiles, properties=["All"]):
             + " cannot be converted into a valid molecule"
         )
 
-    inchikey = Chem.MolToInchiKey(m)
     prop = Properties()
     prop.inchikey = inchikey
+    prop.smiles = smiles
+    prop.validate()
+    
     try:
-        prop.validate()
-    except:
-        raise InChiKeyNotFoundError(
-            "InChI Key Not Found - The provided InChI Key "
-            + inchikey
-            + " was not found in the compounds collection of the database"
-        )
+        url = __format_request_url(inchikey, properties)
+        data = __make_url_request(inchikey, url)
+        data = data["PropertyTable"]["Properties"][0]
 
-    url = __format_request_url(inchikey, properties)
-    data = __make_url_request(inchikey, url)
-    data = data["PropertyTable"]["Properties"][0]
-
-    pc = Pubchem()
-    pc.MolecularFormula = data["MolecularFormula"]
-    pc.MolecularWeight = data["MolecularWeight"]
-    pc.XLogP = data["XLogP"]
-    pc.ExactMass = data["ExactMass"]
-    pc.MonoisotopicMass = data["MonoisotopicMass"]
-    pc.TPSA = data["TPSA"]
-    pc.Complexity = data["Complexity"]
-    pc.Charge = data["Charge"]
-    pc.HBondDonorCount = data["HBondDonorCount"]
-    pc.HBondAcceptorCount = data["HBondAcceptorCount"]
-    pc.RotatableBondCount = data["RotatableBondCount"]
-    pc.HeavyAtomCount = data["HeavyAtomCount"]
-    pc.IsotopeAtomCount = data["IsotopeAtomCount"]
-    pc.AtomStereoCount = data["AtomStereoCount"]
-    pc.DefinedAtomStereoCount = data["DefinedAtomStereoCount"]
-    pc.UndefinedAtomStereoCount = data["UndefinedAtomStereoCount"]
-    pc.BondStereoCount = data["BondStereoCount"]
-    pc.DefinedBondStereoCount = data["DefinedBondStereoCount"]
-    pc.UndefinedBondStereoCount = data["UndefinedBondStereoCount"]
-    pc.CovalentUnitCount = data["CovalentUnitCount"]
-    pc.Volume3D = data["Volume3D"]
-    pc.XStericQuadrupole3D = data["XStericQuadrupole3D"]
-    pc.YStericQuadrupole3D = data["YStericQuadrupole3D"]
-    pc.ZStericQuadrupole3D = data["ZStericQuadrupole3D"]
-    pc.FeatureCount3D = data["FeatureCount3D"]
-    pc.FeatureAcceptorCount3D = data["FeatureAcceptorCount3D"]
-    pc.FeatureDonorCount3D = data["FeatureDonorCount3D"]
-    pc.FeatureAnionCount3D = data["FeatureAnionCount3D"]
-    pc.FeatureCationCount3D = data["FeatureCationCount3D"]
-    pc.FeatureRingCount3D = data["FeatureRingCount3D"]
-    pc.FeatureHydrophobeCount3D = data["FeatureHydrophobeCount3D"]
-    pc.ConformerModelRMSD3D = data["ConformerModelRMSD3D"]
-    pc.EffectiveRotorCount3D = data["EffectiveRotorCount3D"]
-    pc.ConformerCount3D = data["ConformerCount3D"]
-    pc.Fingerprint2D = data["Fingerprint2D"]
-    pc.modified = datetime.datetime.utcnow
+        pc = Pubchem()
+        for key, val in data.items():
+            setattr(pc, key, val)
+        pc.modified = datetime.datetime.utcnow
+    except Exception as e:
+        print(e)
 
     rd = RDKit()
     rd.cipher_mid = "002"
@@ -254,3 +222,36 @@ def insert_properties_from_smiles(smiles, properties=["All"]):
     prop.rdkit = rd
     prop.save()
     print("Inserted properties for object with InChI Key {} to the Properties Collectino of the database".format(inchikey))
+
+
+if __name__ == "__main__":
+    import argparse
+    import os
+    import mongoengine as me
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--testing", action="store_true", help="Flag if inserting into the testing database")
+    parser.add_argument("--update", action="store_true")
+    parser.add_argument("--count", action="store_true")
+    args = parser.parse_args()
+
+    if args.testing:
+        URI = os.environ["TESTING_URI"]
+    else:
+        URI = os.environ["MONGO_URI"]
+
+    me.connect(host=URI)
+
+    if args.update:
+        for comp in Compounds.objects:
+            try:
+                smiles = comp.smiles
+                inchikey = comp.inchikey
+                if Properties.objects.with_id(inchikey) is None:
+                     insert_properties_from_smiles(smiles, inchikey)
+            except Exception as e:
+                print(e)
+    if args.count:
+        print(Properties.objects().count())
+    else:
+        pass

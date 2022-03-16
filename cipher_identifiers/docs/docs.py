@@ -1,7 +1,7 @@
 import mongoengine as me
 import datetime
 from rdkit import Chem
-
+import shortuuid
 
 def validate_smiles(val):
     try:
@@ -15,8 +15,9 @@ class Compounds(me.Document):
     name = me.StringField(default="")
     smiles = me.StringField(required=True, validation=validate_smiles)
     inchi = me.StringField(required=True)
-    cid = me.IntField(default=-1)
+    cid = me.StringField(default="")
     iupac = me.StringField(default="")
+    synonyms = me.ListField(me.StringField(), default = [])
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
 
@@ -58,16 +59,23 @@ class External_Databases(me.Document):
 
 class Biomolecules(me.Document):
     # Cipher BMID
-    ciper_bmid = me.StringField(required=True, primary_key=True)
+    cipher_bmid = me.StringField(required=True, primary_key=True)
     name = me.StringField(default="")
     pdb_id = me.StringField(default="")
     chain_id = me.StringField(default="")
     uniprot_id = me.StringField(default="")
-    sequence = me.StringField(required=True)
+    sequence = me.StringField(default="")
     # TODO: Check to ensure it is in the database
     cipher_mid = me.StringField(required=True, validation=check_mid_in_models)
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
+def gen_unique_biomol_id():
+    su = shortuuid.ShortUUID(alphabet="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    assigned = False
+    while not assigned:
+        rand_id = su.random(length=6)
+        if Biomolecules.objects.with_id(rand_id) is None:
+            return rand_id
 
 def check_bmid_in_biomolecules(val):
     if Biomolecules.objects.with_id(val) is None:

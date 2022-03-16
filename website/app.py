@@ -1,6 +1,6 @@
 # Import statements
 from flask import Flask, request, render_template, redirect, jsonify
-from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_binding_assays
+from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays
 
 #------------------------------------------------------
 #--------------- Flask Initilization ------------------
@@ -45,10 +45,11 @@ def search():
         compounds_binding_sigs = []
         compounds_retro_pathways = []
         for doc in compounds_id_info:
-            compounds_property_info.append(return_properties(doc["inchikey"]))
-            compounds_assay_info.append(return_binding_assays(doc["inchikey"]))
-            compounds_binding_sigs.append(return_biosignature(doc["inchikey"]))
-            compounds_retro_pathways.append(return_askcos_pathways(doc["inchikey"]))
+            print(doc)
+            compounds_property_info.append(return_properties(doc["_id"]))
+            compounds_assay_info.append(return_assays(doc["_id"]))
+            compounds_binding_sigs.append(return_biosignature(doc["_id"]))
+            compounds_retro_pathways.append(return_askcos_pathways(doc["_id"]))
             
         return jsonify({"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways})
         # Compound id info has identifying information about each compound picked up by the search --- list(json formatted dict)
@@ -64,7 +65,7 @@ def summary(inchikey):
     if request.method == 'GET':
         compounds_id_info = return_compounds(inchikey)
         compounds_property_info = return_properties(inchikey)
-        compounds_assay_info = return_binding_assays(inchikey)
+        compounds_assay_info = return_assays(inchikey)
         compounds_binding_sigs = return_biosignature(inchikey)
         compounds_retro_pathways = return_askcos_pathways(inchikey)
         # These are the same as in the search method except one layer of the lists are removed because there is only one compound now
