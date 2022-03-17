@@ -1,6 +1,7 @@
 # Import statements
 from flask import Flask, request, render_template, redirect, jsonify
 from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays
+from utils import *
 
 #------------------------------------------------------
 #--------------- Flask Initilization ------------------
