@@ -51,11 +51,11 @@ def search():
             compounds_assay_info.append(return_assays(doc["_id"]))
             compounds_binding_sigs.append(return_biosignature(doc["_id"]))
             compounds_retro_pathways.append(return_askcos_pathways(doc["_id"]))
-        test = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways}
-        print(test)
-
-        #return jsonify({"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways})
-        return jsonify(test)
+        for entry in compounds_property_info:
+            entry["pubchem"]["MolecularFormula"] = render_mol_formula(entry["pubchem"]["MolecularFormula"])
+        respone = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways}
+        print(respone)
+        return jsonify(respone)
         # Compound id info has identifying information about each compound picked up by the search --- list(json formatted dict)
         # Compound property info has propery information from pubchem and rdkit of each compound picked up by the search --- list(json fromatted dict)
         # Compound assay info has assay information from various sources as a JSON formatted dict document --- list(json formatted dict)
@@ -72,8 +72,9 @@ def summary(inchikey):
         compounds_assay_info = return_assays(inchikey)
         compounds_binding_sigs = return_biosignature(inchikey)
         compounds_retro_pathways = return_askcos_pathways(inchikey)
+        print(compounds_id_info)
         # These are the same as in the search method except one layer of the lists are removed because there is only one compound now
-        return render_template("summary.html",name=compounds_id_info[0]["name"].capitalize(),smiles=compounds_id_info[0]["smiles"],inchi=compounds_id_info[0]["inchi"],molformula=render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"]),molwt=compounds_property_info["pubchem"]["MolecularWeight"],hdc=compounds_property_info["pubchem"]["HBondDonorCount"],hac=compounds_property_info["pubchem"]["HBondAcceptorCount"],logp=compounds_property_info["rdkit"]["MolLogP"]), 200
+        return render_template("summary.html",name=compounds_id_info[0]["name"].capitalize(),smiles=compounds_id_info[0]["smiles"],inchi=compounds_id_info[0]["inchi"],molformula=render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"]),molwt=compounds_property_info["pubchem"]["MolecularWeight"],hdc=compounds_property_info["pubchem"]["HBondDonorCount"],hac=compounds_property_info["pubchem"]["HBondAcceptorCount"],logp=compounds_property_info["rdkit"]["MolLogP"],assays_json=str(compounds_assay_info)), 200
     elif request.method == 'POST':
         return "<pre>" + "Request method not supported" + "</pre>", 400
     else:

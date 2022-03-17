@@ -186,7 +186,7 @@ def return_assays(inchikey):
     pubchem and desi binding assay information in JSON format or None if not found
     """
     if Assays.objects(inchikey=inchikey) is not None:
-        return Assays.objects(inchikey=inchikey).to_json()
+        return json.loads(Assays.objects(inchikey=inchikey).to_json())
     else:
         return []
 
