@@ -218,6 +218,7 @@ function renderResults(results){
     for(let i = 0; i < numEntries; i++){
         // LATER DO NOT INDEX INTO PROPS LIST; KEY IN BY INCHI KEY
         var cmpdName = capitalizeFirstLetter(entries[i].name);
+        console.log(cmpdName);
         var inchikey = entries[i].inchikey;
         var smiles = entries[i].smiles;
         var MolecularFormula = props[i].pubchem.MolecularFormula;

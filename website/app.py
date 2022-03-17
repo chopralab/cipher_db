@@ -51,8 +51,11 @@ def search():
             compounds_assay_info.append(return_assays(doc["_id"]))
             compounds_binding_sigs.append(return_biosignature(doc["_id"]))
             compounds_retro_pathways.append(return_askcos_pathways(doc["_id"]))
-            
-        return jsonify({"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways})
+        test = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways}
+        print(test)
+
+        #return jsonify({"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways})
+        return jsonify(test)
         # Compound id info has identifying information about each compound picked up by the search --- list(json formatted dict)
         # Compound property info has propery information from pubchem and rdkit of each compound picked up by the search --- list(json fromatted dict)
         # Compound assay info has assay information from various sources as a JSON formatted dict document --- list(json formatted dict)
