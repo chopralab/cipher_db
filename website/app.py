@@ -69,7 +69,7 @@ def summary(inchikey):
         compounds_binding_sigs = return_biosignature(inchikey)
         compounds_retro_pathways = return_askcos_pathways(inchikey)
         # These are the same as in the search method except one layer of the lists are removed because there is only one compound now
-        return render_template("summary.html",info={"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways}), 200
+        return render_template("summary.html",name=compounds_id_info[0]["name"].capitalize(),smiles=compounds_id_info[0]["smiles"],inchi=compounds_id_info[0]["inchi"],molformula=render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"]),molwt=compounds_property_info["pubchem"]["MolecularWeight"],hdc=compounds_property_info["pubchem"]["HBondDonorCount"],hac=compounds_property_info["pubchem"]["HBondAcceptorCount"],logp=compounds_property_info["rdkit"]["MolLogP"]), 200
     elif request.method == 'POST':
         return "<pre>" + "Request method not supported" + "</pre>", 400
     else:
