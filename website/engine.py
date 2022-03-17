@@ -100,7 +100,7 @@ def return_properties(inchikey):
     """
     prop = Properties.objects().with_id(inchikey)
     if prop is not None:
-        return prop.to_json()
+        return json.loads(prop.to_json())
 
 
 def return_biosignature(inchikey):
