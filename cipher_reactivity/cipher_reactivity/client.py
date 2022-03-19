@@ -168,7 +168,7 @@ class AskcosClient:
             if res["failed"]:
                 print(res["error"])
                 return None
-            if ((time.time() - start) > timeout):
+            if (time.time() - start) > timeout:
                 return None
 
             time.sleep(interval)
