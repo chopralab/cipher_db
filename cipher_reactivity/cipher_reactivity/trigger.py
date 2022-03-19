@@ -21,8 +21,7 @@ from cipher_reactivity.docs import (
 )
 from cipher_reactivity.sascorer import SAScorer
 
-me.connect(host=os.environ["MONGO_URI"])
-MONGO_CLIENT = pmg.MongoClient(os.environ["MONGO_URI"])
+MONGO_CLIENT = me.connect(host=os.environ["MONGO_URI"])
 
 ASKCOST_HOST = os.environ["ASKCOS_HOST"]
 try:
