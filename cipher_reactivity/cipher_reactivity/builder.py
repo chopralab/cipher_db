@@ -88,25 +88,25 @@ def build_synthetic_tree(tree: Dict) -> SyntheticTree:
     return st
 
 
-def build_retrosynthesis(inchikey, smi):
+def build_retrosynthesis(inchikey, smiles):
     retro = Retrosynthesis()
 
     retro.inchikey = inchikey
-    retro.smi = smi
-    retro.trees = [build_synthetic_tree(tree) for tree in ASKCOS_CLIENT.get_trees(smi)]
+    retro.smiles = smiles
+    retro.trees = [build_synthetic_tree(tree) for tree in ASKCOS_CLIENT.get_trees(smiles)]
 
     retro.save()
 
     return retro
 
 
-def build_difficulty(inchikey, smi):
+def build_difficulty(inchikey, smiles):
     difficulty = Difficulty()
 
     difficulty.inchikey = inchikey
-    difficulty.smiles = smi
-    difficulty.sc_score = ASKCOS_CLIENT.sc_score(smi)
-    difficulty.sa_score = SA_SCORER(smi)
+    difficulty.smiles = smiles
+    difficulty.sc_score = ASKCOS_CLIENT.sc_score(smiles)
+    difficulty.sa_score = SA_SCORER(smiles)
 
     difficulty.save()
 

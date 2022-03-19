@@ -2,7 +2,7 @@ from enum import Enum
 import json
 import os
 import time
-from typing import Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 import urllib3
 
 import requests
@@ -104,7 +104,7 @@ class AskcosClient:
             print(e)
             return None
 
-        return self.get_result(resp.json()["task_id"])
+        return self.get_result(resp.json()["task_id"], self.interval, self.timeout)
 
     def predict_products(
         self,
@@ -136,7 +136,7 @@ class AskcosClient:
             print(e)
             return None
 
-        return self.get_result(resp.json()["task_id"])
+        return self.get_result(resp.json()["task_id"], self.interval, self.timeout)
 
     def sc_score(self, smi: str) -> float:
         url = self.host + AskcosEndpoints.SC_SCORE.value
@@ -149,13 +149,13 @@ class AskcosClient:
                 raise ValueError(f"Invalid SMILES string supplied! got: {smi}")
             raise ValueError(e)
         except requests.RequestException as e:
-            print(f"Error submitting tree job for SMILES: {smi}")
+            print(f"Error submitting scscore job for SMILES: {smi}")
             print(e)
             return None
 
         return resp.json()["score"]
 
-    def get_result(self, task_id) -> Optional[List[Dict]]:
+    def get_result(self, task_id, interval: float, timeout: float) -> Optional[Any]:
         url = self.host + AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/"
 
         start = time.time()
@@ -165,10 +165,13 @@ class AskcosClient:
 
             if res["complete"]:
                 return res["output"]
-            if res["failed"] or ((time.time() - start) > self.timeout):
+            if res["failed"]:
+                print(res["error"])
+                return None
+            if ((time.time() - start) > timeout):
                 return None
 
-            time.sleep(self.interval)
+            time.sleep(interval)
 
 
 if __name__ == "__main__":
