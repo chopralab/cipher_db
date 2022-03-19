@@ -14,17 +14,21 @@ TEST_DIR = Path(__file__).parent
 def fpscoress():
     return pickle.loads((TEST_DIR / "data" / "fpscores.pkl").read_bytes())
 
+
 @pytest.fixture
 def sa_scorer_pkl():
     return SAScorer(pickle.loads((TEST_DIR / "data" / "fpscores.pkl").read_bytes()))
+
 
 @pytest.fixture
 def sa_scorer_pkg():
     return SAScorer(json.loads(resources.read_text("cipher_reactivity.data", "fpscores.json")))
 
+
 @pytest.fixture
 def sa_scorer(sa_scorer_pkl):
     return sa_scorer_pkl
+
 
 @pytest.mark.parametrize(
     "smi,true_score",
@@ -134,6 +138,7 @@ def sa_scorer(sa_scorer_pkl):
 def test_sascorer(sa_scorer, smi, true_score):
     assert pytest.approx(sa_scorer(smi), abs=1e-3) == true_score
 
+
 @pytest.mark.parametrize(
     "smi",
     [
@@ -146,14 +151,13 @@ def test_sascorer(sa_scorer, smi, true_score):
         "CCC(C)(C)[NH2+]CC(O)COc1ccccc1C#N",
         "C[NH+](C)CC(O)Cn1c2ccc(Br)cc2c2cc(Br)ccc21",
         "CC12CCC3C(CCC4CC(=O)CCC43C)C1CCC2=O",
-    ]
+    ],
 )
 def test_pkg_config(sa_scorer_pkl, sa_scorer_pkg, smi):
     assert pytest.approx(sa_scorer_pkg(smi)) == sa_scorer_pkl(smi)
 
-@pytest.mark.parametrize(
-    "smi", ["hello", "world", "foo"]
-)
+
+@pytest.mark.parametrize("smi", ["hello", "world", "foo"])
 def test_invalid_smiles(sa_scorer, smi):
     with pytest.raises(ValueError):
         sa_scorer(smi)

@@ -2,6 +2,7 @@ import pytest
 
 from cipher_reactivity import viz
 
+
 @pytest.fixture
 def tree():
     return {
@@ -76,6 +77,7 @@ def tree():
         ],
     }
 
+
 def walk_tree(cleaned_tree):
     VALID_KEYS = {"smiles", "children"}
 
@@ -85,9 +87,11 @@ def walk_tree(cleaned_tree):
             for subtree in val:
                 walk_tree(subtree)
 
+
 def test_clean_tree(tree):
     cleaned_tree = viz.clean_tree(tree)
     walk_tree(cleaned_tree)
+
 
 def test_clean_tree_integrity(tree):
     cleaned_tree = viz.clean_tree(tree)
