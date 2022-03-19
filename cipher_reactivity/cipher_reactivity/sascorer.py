@@ -21,6 +21,9 @@ class SAScorer:
 
     def score(self, smi: str) -> float:
         mol = Chem.MolFromSmiles(smi)
+        if mol is None:
+            raise ValueError(f"invalid SMILES string! got: {smi}")
+
         fp = rdMolDescriptors.GetMorganFingerprint(mol, 2)
         fps = fp.GetNonzeroElements()
 

@@ -2,16 +2,18 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 import tempfile
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 import graphviz
 from rdkit import Chem
 from rdkit.Chem import Draw
 
+from cipher_reactivity.exceptions import InvalidChemicalNodeError, InvalidRetrosyntheticTreeError
+
 Edge = Tuple[str, str]
 
 TMP_DIR = Path(tempfile.gettempdir()) / "tree_assets" / datetime.now().isoformat("_", "seconds")
-TMP_DIR.mkdir(exist_ok=True, parents=True)
+TMP_DIR.mkdir(parents=True, exist_ok=True)
 
 DRAW_OPTIONS = Draw.rdMolDraw2D.MolDrawOptions()
 DRAW_OPTIONS.bondLineWidth = 6
@@ -26,24 +28,31 @@ def clean_assets():
     TMP_DIR.mkdir()
 
 
-def clean_tree(tree: Dict) -> Optional[Dict]:
-    """clean a retroysynthetic tree json into only smiles and children. None if cleaning failed"""
-    if "children" in tree and "is_reaction" in tree:
+def clean_tree(tree: Dict) -> Optional[Union[Dict, List[Dict]]]:
+    """clean a retroysynthetic tree into only smiles and children. None if cleaning failed"""
+    if "children" not in tree:
+        raise InvalidRetrosyntheticTreeError(
+            'Invalid retrosynthetic tree supplied! arg "tree" has no key "children"!'
+        )
+
+    if "is_reaction" in tree and tree["is_reaction"]:
         return [clean_tree(child) for child in tree["children"]]
 
-    elif "children" in tree and "smiles" in tree:
+    if "is_chemical" in tree and tree["is_chemical"]:
         if len(tree["children"]) == 1:
             children = clean_tree(tree["children"][0])
             return {"smiles": tree["smiles"], "children": children}
-        elif len(tree["children"]) == 0:
+
+        if len(tree["children"]) == 0:
             return {"smiles": tree["smiles"]}
-        else:
-            print("Error with format")
-            return None
-    else:
-        print(tree)
-        print("Error with format...")
-        return None
+
+        raise InvalidChemicalNodeError(
+            f'Chemical node can only have 1 child! got: {len(tree["children"])}'
+        )
+
+    raise InvalidRetrosyntheticTreeError(
+        'arg "tree" is no "children", "is_reaction", or "smiles" keys!'
+    )
 
 
 def get_edges(tree: Dict, parent: Optional[str] = None) -> List[Edge]:
@@ -53,9 +62,10 @@ def get_edges(tree: Dict, parent: Optional[str] = None) -> List[Edge]:
 
     if parent is not None:
         edges = [(parent, smi)]
+
     if "children" in tree:
-        for child in tree["children"]:
-            edges += get_edges(child, parent=smi)
+        for subtree in tree["children"]:
+            edges += get_edges(subtree, smi)
 
         return edges
     else:
@@ -65,6 +75,7 @@ def get_edges(tree: Dict, parent: Optional[str] = None) -> List[Edge]:
 def get_leaves(edges: List[Tuple], nodes: Iterable[str]) -> Set[str]:
     """given a list of edges, finds nodes with no children"""
     children = set(nodes)
+
     for e in edges:
         parent = e[0]
         if parent in children:
@@ -192,9 +203,9 @@ if __name__ == "__main__":
     }
 
     graph = tree_to_graph(clean_tree(tree))
-    graph.render(outfile="test.png", cleanup=True)
+    graph.render(outfile="my-test.png", cleanup=True)
 
-    with tempfile.NamedTemporaryFile("w") as fid, open("my-test.png", "wb") as fid2:
-        graph.render(outfile=fid.name, format="png", cleanup=True)
-        fid.seek(0)
-        fid2.write(fid.read())
+    # with tempfile.NamedTemporaryFile("w") as fid, open("my-test.png", "wb") as fid2:
+    #     graph.render(outfile=fid.name, format="png", cleanup=True)
+    #     fid.seek(0)
+    #     fid2.write(fid.read())

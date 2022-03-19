@@ -1,3 +1,5 @@
+from importlib import resources
+import json
 from pathlib import Path
 import pickle
 
@@ -9,12 +11,20 @@ TEST_DIR = Path(__file__).parent
 
 
 @pytest.fixture
-def sa_scorer():
-    p_fp_scores_pkl = TEST_DIR / "data" / "fpscores.pkl"
-    fpscores = pickle.loads(p_fp_scores_pkl.read_bytes())
+def fpscoress():
+    return pickle.loads((TEST_DIR / "data" / "fpscores.pkl").read_bytes())
 
-    return SAScorer(fpscores)
+@pytest.fixture
+def sa_scorer_pkl():
+    return SAScorer(pickle.loads((TEST_DIR / "data" / "fpscores.pkl").read_bytes()))
 
+@pytest.fixture
+def sa_scorer_pkg():
+    return SAScorer(json.loads(resources.read_text("cipher_reactivity.data", "fpscores.json")))
+
+@pytest.fixture
+def sa_scorer(sa_scorer_pkl):
+    return sa_scorer_pkl
 
 @pytest.mark.parametrize(
     "smi,true_score",
@@ -123,3 +133,27 @@ def sa_scorer():
 )
 def test_sascorer(sa_scorer, smi, true_score):
     assert pytest.approx(sa_scorer(smi), abs=1e-3) == true_score
+
+@pytest.mark.parametrize(
+    "smi",
+    [
+        "Cc1c(C(=O)NCCO)[n+](=O)c2ccccc2n1[O-]",
+        "Cn1cc(NC=O)cc1C(=O)Nc1cc(C(=O)Nc2cc(C(=O)NCCC(N)=[NH2+])n(C)c2)n(C)c1",
+        "OC(c1ccncc1)c1ccc(OCC[NH+]2CCCC2)cc1",
+        "CC(C(=O)[O-])c1ccc(-c2ccccc2)cc1",
+        "C[NH+](C)CC(O)Cn1c2ccc(Br)cc2c2cc(Br)ccc21",
+        "NC(=[NH2+])NCC1COc2ccccc2O1",
+        "CCC(C)(C)[NH2+]CC(O)COc1ccccc1C#N",
+        "C[NH+](C)CC(O)Cn1c2ccc(Br)cc2c2cc(Br)ccc21",
+        "CC12CCC3C(CCC4CC(=O)CCC43C)C1CCC2=O",
+    ]
+)
+def test_pkg_config(sa_scorer_pkl, sa_scorer_pkg, smi):
+    assert pytest.approx(sa_scorer_pkg(smi)) == sa_scorer_pkl(smi)
+
+@pytest.mark.parametrize(
+    "smi", ["hello", "world", "foo"]
+)
+def test_invalid_smiles(sa_scorer, smi):
+    with pytest.raises(ValueError):
+        sa_scorer(smi)
