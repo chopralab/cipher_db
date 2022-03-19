@@ -2,7 +2,7 @@ from enum import Enum
 import json
 import os
 import time
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 import urllib3
 
 import requests
@@ -12,8 +12,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class AskcosEndpoints(Enum):
     AUTHENTICATION = "/api/v2/token-auth/"
-    TREE_BUILDER = "/api/v2/tree-builder/"
+    FORWARD = "/api/v2/forward/"
     SC_SCORE = "/api/v2/scscore/"
+    TREE_BUILDER = "/api/v2/tree-builder/"
     TASK_RETRIEVAL = "/api/v2/celery/task/"
 
 
@@ -105,20 +106,37 @@ class AskcosClient:
 
         return self.get_result(resp.json()["task_id"])
 
-    def get_result(self, task_id) -> Optional[List[Dict]]:
-        url = self.host + AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/"
+    def predict_products(
+        self,
+        reactants: Iterable[str],
+        reagents: Optional[Iterable[str]] = None,
+        solvent: Optional[str] = "",
+        num_results: int = 100,
+        atommap: bool = False,
+    ):
+        url = self.host + AskcosEndpoints.FORWARD.value
 
-        start = time.time()
-        while True:
-            resp = requests.get(url, verify=False)
-            res = resp.json()
+        data = {
+            "reactants": ".".join(reactants),
+            "reagents": ".".join(reagents) if reagents else "",
+            "solvent": solvent,
+            "num_results": num_results,
+            "atommmap": atommap,
+        }
 
-            if res["complete"]:
-                return res["output"]
-            if res["failed"] or ((time.time() - start) > self.timeout):
-                return None
+        try:
+            resp = requests.post(url, data, timeout=20, verify=False)
+            resp.raise_for_status()
+        # except requests.HTTPError as e:
+        #     if resp.json()["smiles"] != smi:
+        #         raise ValueError(f"Invalid SMILES string supplied! got: {smi}")
+        #     raise ValueError(e)
+        except requests.RequestException as e:
+            print(f"Error submitting tree job for SMILES: {smi}")
+            print(e)
+            return None
 
-            time.sleep(self.interval)
+        return self.get_result(resp.json()["task_id"])
 
     def sc_score(self, smi: str) -> float:
         url = self.host + AskcosEndpoints.SC_SCORE.value
@@ -136,6 +154,21 @@ class AskcosClient:
             return None
 
         return resp.json()["score"]
+
+    def get_result(self, task_id) -> Optional[List[Dict]]:
+        url = self.host + AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/"
+
+        start = time.time()
+        while True:
+            resp = requests.get(url, verify=False)
+            res = resp.json()
+
+            if res["complete"]:
+                return res["output"]
+            if res["failed"] or ((time.time() - start) > self.timeout):
+                return None
+
+            time.sleep(self.interval)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ["py37"]
+skip-magic-trailing-comma = true
+
+[tool.pytest.ini_options]
+addopts = "--cov cipher_reactivity"
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "cipher_reactivity/client.py",
+    "cipher_reactivity/trigger.py"
+]
