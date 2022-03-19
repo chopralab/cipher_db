@@ -16,8 +16,8 @@ def synthesis_trigger():
                 inchikey = d["inchikey"]
                 smi = d["smiles"]
 
-                builder.update_difficulty(inchikey, smi)
-                builder.update_retrosynthesis(inchikey, smi)
+                builder.build_difficulty(inchikey, smi)
+                builder.build_retrosynthesis(inchikey, smi)
     except pmg.errors.PyMongoError as e:
         print(e)
 

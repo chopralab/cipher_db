@@ -88,7 +88,7 @@ def build_synthetic_tree(tree: Dict) -> SyntheticTree:
     return st
 
 
-def update_retrosynthesis(inchikey, smi):
+def build_retrosynthesis(inchikey, smi):
     retro = Retrosynthesis()
 
     retro.inchikey = inchikey
@@ -100,7 +100,7 @@ def update_retrosynthesis(inchikey, smi):
     return retro
 
 
-def update_difficulty(inchikey, smi):
+def build_difficulty(inchikey, smi):
     difficulty = Difficulty()
 
     difficulty.inchikey = inchikey
