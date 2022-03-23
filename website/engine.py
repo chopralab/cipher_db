@@ -245,6 +245,8 @@ def return_compound_image(inchikey):
             return image
     return None
 
+def return_desired_dynamic_biosignature():
+    return return_biosignature("RMRJXGBAOAMLHD-IHFGGWKQSA-N")
 
 def testing():
     compounds_id_info = return_compounds("RONZAEMNMFQXRA-UHFFFAOYSA-N")
@@ -267,6 +269,15 @@ def testing():
     print(" ")
     print("Assay Data")
     print(assay)
+
+    d_moa, d_binding = return_desired_dynamic_biosignature()
+
+    print(" ")
+    print("Desired Biosignature MOA Vector")
+    print(d_moa)
+    print(" ")
+    print("Desired Biosignature CANDO Binding Vector")
+    print(d_binding)
 
     decoded_image = open("temp/RONZAEMNMFQXRA-UHFFFAOYSA-N.svg", 'wb')
     decoded_image.write(base64.b64decode(image))
