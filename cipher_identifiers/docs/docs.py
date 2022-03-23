@@ -18,6 +18,7 @@ class Compounds(me.Document):
     cid = me.StringField(default="")
     iupac = me.StringField(default="")
     synonyms = me.ListField(me.StringField(), default = [])
+    image = me.FileField()
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
 
