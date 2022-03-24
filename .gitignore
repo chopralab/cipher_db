@@ -156,8 +156,11 @@ cipher_assays/data/PUBCHEM/*
 cipher_assays/data/DESI/*
 cipher_assays/data/CHEMBL/*
 
+cipher_assays/data/*
+
 *.png
 *.txt
 *.gz
 *.pkl
 *.toml
+*.svg

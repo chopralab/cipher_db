@@ -127,15 +127,15 @@ def return_biosignature(inchikey):
         "AMPAR",
     ]
     BMIDS = {
-        "L5PEC8": BIOSIG[0],
-        "5ZO0F1": BIOSIG[1],
-        "YR8CKC": BIOSIG[2],
-        "1J44PP": BIOSIG[3],
+        "1NN6YL": BIOSIG[0],
+        "1W94ZT": BIOSIG[1],
+        "2IMRXM": BIOSIG[2],
+        "14LKRS": BIOSIG[3],
         "XXXXXX": BIOSIG[4],
-        "223YNF": BIOSIG[5],
-        "W7JQO2": BIOSIG[6],
-        "1HOCMC": BIOSIG[7],
-        "23261U": BIOSIG[8],
+        "24JXV0": BIOSIG[5],
+        "1GKVIX": BIOSIG[6],
+        "14SUK2": BIOSIG[7],
+        "1OWFJU": BIOSIG[8],
     }
     CHEMBL = "chembl"
     DRUGBANK = "drugbank"
@@ -146,15 +146,15 @@ def return_biosignature(inchikey):
     for assay in Assays.objects(inchikey=inchikey):
         if assay.source == CHEMBL:
             if assay.receptor not in moa:
-                if assay.action is not None:
+                if hasattr(assay, "action"):
                     moa[assay.receptor] = assay.action.lower()
         if assay.source == DRUGBANK:
             if assay.receptor not in moa:
-                if assay.drugaction is not None:
+                if hasattr(assay, "drugaction"):
                     moa[assay.receptor] = assay.drugaction.lower()
         if assay.source == IUPHAR:
             if assay.receptor not in moa:
-                if assay.action is not None:
+                if hasattr(assay, "action"):
                     moa[assay.receptor] = assay.action.lower()
 
     for receptor in BIOSIG:
@@ -163,11 +163,11 @@ def return_biosignature(inchikey):
 
     for entry in Cando.objects(inchikey=inchikey):
         if entry.cipher_bmid in BMIDS.keys():
-            binding[BMIDS[entry.cipher_bmid]] = entry.interaction_score
+            binding[BMIDS[entry.cipher_bmid]] = float(entry.interaction_score)
 
     for receptor in BMIDS.values():
         if receptor not in binding:
-            binding[receptor] = -1
+            binding[receptor] = -1.0
 
     return moa, binding
 
@@ -215,19 +215,46 @@ def return_askcos_pathways(inchikey):
     retro = Retrosynthesis.objects().with_id(inchikey)
     images = []
     if retro is not None:
-        trees = retro.trees
-        for tree in trees:
-            image = tree.image.read()
-            image = codecs.encode(image, "base64").decode("utf-8")
-            images.append(image)
+        if hasattr(retro, "trees"):
+            trees = retro.trees
+            for tree in trees:
+                image = tree.image.read()
+                image = codecs.encode(image, "base64").decode("utf-8")
+                images.append(image)
     return images
 
+def return_compound_image(inchikey):
+    '''
+    Returns the image of the compoud with the corresponding InChI Key
+
+    Parameters:
+    -----------
+    inchikey: string, required
+        The InChI Key of the compound to have its image retreived
+
+    Returns:
+    --------
+    image: string
+        The image of the corresponding compound in a utf-8 decoded string
+    '''
+    comp = Compounds.objects().with_id(inchikey)
+    if comp is not None:
+        if hasattr(comp, "image"):
+            image = comp.image.read()
+            image = codecs.encode(image, 'base64').decode('utf-8')
+            return image
+    return None
+
+def return_desired_dynamic_biosignature():
+    return return_biosignature("RMRJXGBAOAMLHD-IHFGGWKQSA-N")
 
 def testing():
     compounds_id_info = return_compounds("RONZAEMNMFQXRA-UHFFFAOYSA-N")
     properties = return_properties("RONZAEMNMFQXRA-UHFFFAOYSA-N")
     moa, binding = return_biosignature("RONZAEMNMFQXRA-UHFFFAOYSA-N")
     assay = return_assays("RONZAEMNMFQXRA-UHFFFAOYSA-N")
+    image = return_compound_image("RONZAEMNMFQXRA-UHFFFAOYSA-N")
+    retro = return_askcos_pathways("CQOJHAJWCDJEAT-UHFFFAOYSA-N")
     print("Compound Identifying Information")
     print(compounds_id_info)
     print(" ")
@@ -242,6 +269,24 @@ def testing():
     print(" ")
     print("Assay Data")
     print(assay)
+
+    d_moa, d_binding = return_desired_dynamic_biosignature()
+
+    print(" ")
+    print("Desired Biosignature MOA Vector")
+    print(d_moa)
+    print(" ")
+    print("Desired Biosignature CANDO Binding Vector")
+    print(d_binding)
+
+    decoded_image = open("temp/RONZAEMNMFQXRA-UHFFFAOYSA-N.svg", 'wb')
+    decoded_image.write(base64.b64decode(image))
+    decoded_image.close()
+
+    for i in range(len(retro)):
+        decoded_image = open("temp/RONZAEMNMFQXRA-UHFFFAOYSA-N_tree_{}.png".format(i), 'wb')
+        decoded_image.write(base64.b64decode(retro[i]))
+        decoded_image.close()
 
 
 if __name__ == "__main__":

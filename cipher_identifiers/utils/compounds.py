@@ -1,8 +1,12 @@
+from turtle import update
 import requests
 import json
-from rdkit import Chem
-from rdkit import RDLogger
+from rdkit import Chem, RDLogger
+from rdkit.Chem import Draw
 from time import sleep
+import os
+import codecs
+import base64
 RDLogger.DisableLog('rdApp.*')  
 
 if __name__ == "__main__":
@@ -28,6 +32,25 @@ from cipher_identifiers.docs.docs import (
 # Import ME document
 from cipher_identifiers.docs.docs import Compounds
 from cipher_properties.docs.docs import Properties
+
+def update_image(inchikey):
+    comp = Compounds.objects().with_id(inchikey)
+    fname = "../temp/"+inchikey+".svg"
+    mol = Chem.MolFromSmiles(comp.smiles)
+    Draw.MolToFile(mol, fname)
+    with open(fname, "rb") as f:
+        comp.image.put(f, content_type="image/svg")
+        comp.save()
+    f.close()
+    os.remove(fname)
+
+def get_image_from_mol(mol, inchikey, comp):
+    fname = "../temp/"+inchikey+".svg"
+    Draw.MolToFile(mol, fname)
+    with open(fname, "rb") as f:
+        comp.image.put(f, content_type="image/svg")
+    f.close()
+    os.remove(fname)
 
 def get_smiles_from_inchikey(inchikey):
     url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/{}/property/canonicalSMILES/JSON".format(inchikey)
@@ -100,6 +123,8 @@ def id_compound_from_smiles(smiles):
     comp.smiles = Chem.MolToSmiles(m, isomericSmiles=False)
     comp.inchi = Chem.MolToInchi(m)
 
+    get_image_from_mol(m, inchikey, comp)
+
     try:
         comp.cid, comp.iupac, comp.name = get_ids_from_inchikey(inchikey)
         sleep(0.25)
@@ -137,7 +162,15 @@ def id_compounds_from_inchikey(inchikey):
     )
     return True
 
-    
+def get_image_from_database(inchikey):
+    comp = Compounds.objects().with_id(inchikey)
+    if comp is not None:
+        image = comp.image.read()
+        image = codecs.encode(image, 'base64').decode('utf-8')
+        decoded_image = open("../temp/{}.svg".format(inchikey), 'wb')
+        decoded_image.write(base64.b64decode(image))
+        decoded_image.close()
+
 
 if __name__ == "__main__":
     import argparse
@@ -148,6 +181,8 @@ if __name__ == "__main__":
     parser.add_argument("--testing", action="store_true", help="Flag if inserting into the testing database")
     parser.add_argument("--update", action="store_true", help="Flag for mass update opertion on the database")
     parser.add_argument("--smiles", type=str, help="The SMILES string to be added to the database")
+    parser.add_argument("--inchikey", type=str, help="The SMILES string to be added to the database")
+    parser.add_argument("--get-image", action="store_true")
     parser.add_argument("--count", action="store_true")
     args = parser.parse_args()
 
@@ -159,8 +194,15 @@ if __name__ == "__main__":
     me.connect(host=URI)
 
     if args.update:
-        for doc in Properties.objects:
-            id_compounds_from_inchikey(doc.inchikey)
+       for comp in Compounds.objects():
+            try:
+                update_image(comp.inchikey)
+                print("Updated image for compound with InChI Key {}".format(comp.inchikey))
+            except Exception as e:
+                print(e)
+    if args.get_image:
+        if args.inchikey is not None:
+            get_image_from_database(args.inchikey)
     if args.count:
         print(Compounds.objects().count())
     else:
