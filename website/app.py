@@ -1,6 +1,6 @@
 # Import statements
 from flask import Flask, request, render_template, redirect, jsonify
-from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays
+from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image
 from utils import *
 
 #------------------------------------------------------
@@ -53,6 +53,8 @@ def search():
             compounds_retro_pathways.append(return_askcos_pathways(doc["_id"]))
         for entry in compounds_property_info:
             entry["pubchem"]["MolecularFormula"] = render_mol_formula(entry["pubchem"]["MolecularFormula"])
+            entry["utf8image"] = return_compound_image(entry["_id"])
+            
         respone = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways}
         print(respone)
         return jsonify(respone)
