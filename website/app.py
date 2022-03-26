@@ -1,6 +1,6 @@
 # Import statements
 from flask import Flask, request, render_template, redirect, jsonify
-from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image, return_desired_dynamic_biosignature
+from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image, return_desired_dynamic_biosignature, return_askcos_pathways
 from utils import *
 
 #------------------------------------------------------
@@ -63,8 +63,8 @@ def search():
         for entry in compounds_property_info:
             entry["pubchem"]["MolecularFormula"] = render_mol_formula(entry["pubchem"]["MolecularFormula"])
             entry["svg"] = return_compound_image(entry["_id"]).replace("height='300px'","height='200px'").replace("width='300px'","width='200px'")
-        
-            
+            #temp appending of pathway images to compounds_retro_pathways:
+            compounds_retro_pathways.append(return_askcos_pathways(entry["_id"]))
         respone = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways, "desired": return_desired_dynamic_biosignature()}
         print(respone)
         return jsonify(respone)

@@ -133,15 +133,15 @@ function renderBiosig(cmpdName,inchi,cmpdBiosig,desired){
     bioList.push(cmpdBiosig[0][1].kappaOR);
     bioList.push(cmpdBiosig[0][1].muOR);
     bioList.push(cmpdBiosig[0][1].nociceptinOR);
-    desList.push(cmpdBiosig[0][1].AMPAR);
-    desList.push(cmpdBiosig[0][1].D2LDR);
-    desList.push(cmpdBiosig[0][1].DRD2);
-    desList.push(cmpdBiosig[0][1].DRD3);
-    desList.push(cmpdBiosig[0][1].NMDAR);
-    desList.push(cmpdBiosig[0][1].deltaOR);
-    desList.push(cmpdBiosig[0][1].kappaOR);
-    desList.push(cmpdBiosig[0][1].muOR);
-    desList.push(cmpdBiosig[0][1].nociceptinOR);
+    desList.push(desired[1].AMPAR);
+    desList.push(desired[1].D2LDR);
+    desList.push(desired[1].DRD2);
+    desList.push(desired[1].DRD3);
+    desList.push(desired[1].NMDAR);
+    desList.push(desired[1].deltaOR);
+    desList.push(desired[1].kappaOR);
+    desList.push(desired[1].muOR);
+    desList.push(desired[1].nociceptinOR);
         
     var options = {
       series: [
