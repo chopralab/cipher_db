@@ -1,6 +1,6 @@
 # Import statements
 from flask import Flask, request, render_template, redirect, jsonify
-from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image
+from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image, return_desired_dynamic_biosignature
 from utils import *
 
 #------------------------------------------------------
@@ -29,6 +29,15 @@ def index():
         pass
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
+        
+@app.route('/add', methods=['GET','POST'])
+def add():
+    if request.method == 'GET':
+        return render_template("add.html"), 200
+    elif request.method == 'POST':
+        pass
+    else:
+        return "<pre>" + "Request method not supported" + "</pre>", 400
 
 # Route to the search page
 @app.route('/search', methods=['GET','POST'])
@@ -53,9 +62,9 @@ def search():
             compounds_retro_pathways.append(return_askcos_pathways(doc["_id"]))
         for entry in compounds_property_info:
             entry["pubchem"]["MolecularFormula"] = render_mol_formula(entry["pubchem"]["MolecularFormula"])
-            entry["utf8image"] = return_compound_image(entry["_id"])
+            entry["svg"] = return_compound_image(entry["_id"]).replace("height='300px'","height='200px'").replace("width='300px'","width='200px'")
             
-        respone = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways}
+        respone = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways, "desired": return_desired_dynamic_biosignature()}
         print(respone)
         return jsonify(respone)
         # Compound id info has identifying information about each compound picked up by the search --- list(json formatted dict)
@@ -63,6 +72,22 @@ def search():
         # Compound assay info has assay information from various sources as a JSON formatted dict document --- list(json formatted dict)
         # Compound binding sigs has a list of binding signatures (9 values, none have been assinged in the database yet) for each comound --- list(list(floats))
         # Compound retro pathways has a list of a list of utf-8 encoded image strings corresponding to the ranked retrosynthetic pathways --- list(list(string))
+    else:
+        return "<pre>" + "Request method not supported" + "</pre>", 400
+
+@app.route('/info', methods=['GET','POST'])
+def info():
+    if request.method == 'POST':
+        print(request.json)
+        compounds_id_info = return_compounds(request.json['inchikey'])
+        compounds_property_info = return_properties(request.json['inchikey'])
+        compounds_assay_info = return_assays(request.json['inchikey'])
+        compounds_binding_sigs = return_biosignature(request.json['inchikey'])
+        compounds_retro_pathways = return_askcos_pathways(request.json['inchikey'])
+        compounds_property_info["pubchem"]["MolecularFormula"] = render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"])
+        compounds_property_info["svg"] = return_compound_image(compounds_property_info["_id"])
+        respone = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways, "desired": return_desired_dynamic_biosignature()}
+        return jsonify(respone)
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
@@ -76,7 +101,7 @@ def summary(inchikey):
         compounds_retro_pathways = return_askcos_pathways(inchikey)
         print(compounds_id_info)
         # These are the same as in the search method except one layer of the lists are removed because there is only one compound now
-        return render_template("summary.html",name=compounds_id_info[0]["name"].capitalize(),smiles=compounds_id_info[0]["smiles"],inchi=compounds_id_info[0]["inchi"],molformula=render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"]),molwt=compounds_property_info["pubchem"]["MolecularWeight"],hdc=compounds_property_info["pubchem"]["HBondDonorCount"],hac=compounds_property_info["pubchem"]["HBondAcceptorCount"],logp=compounds_property_info["rdkit"]["MolLogP"],assays_json=str(compounds_assay_info)), 200
+        return render_template("summary.html",name=compounds_id_info[0]["name"].capitalize(),smiles=compounds_id_info[0]["smiles"],inchi=compounds_id_info[0]["inchi"],molformula=render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"]),molwt=compounds_property_info["pubchem"]["MolecularWeight"],hdc=compounds_property_info["pubchem"]["HBondDonorCount"],hac=compounds_property_info["pubchem"]["HBondAcceptorCount"],logp=compounds_property_info["rdkit"]["MolLogP"],inchikey=inchikey), 200
     elif request.method == 'POST':
         return "<pre>" + "Request method not supported" + "</pre>", 400
     else:

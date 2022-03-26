@@ -1,3 +1,40 @@
+var resultsList = document.getElementById('results');
+var response = null;
+let query = window.location.href;
+console.log(query);
+query = query.split('/')[4];
+console.log(query);
+search(query);
+console.log("searching...");
+
+
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function search(query){
+    queryJSON = {
+        "inchikey": query
+    };
+    $.ajax({
+        url: '/info',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        datatype: "json",
+        data: JSON.stringify(queryJSON),
+        success: function (data) {
+            console.log("Recieving search results: " + JSON.stringify(data));
+            response = data;
+            console.log(response)
+            renderResults(response);
+            //document.getElementById("loading").remove();
+        },
+        error: function () {
+            console.log('Error');
+        }
+    });
+}
+
 function generateData(cols,bounds){
     let vals = [];
     for(let i = 0; i < cols; i++){
@@ -91,3 +128,27 @@ var options = {
 
     var chart = new ApexCharts(document.querySelector("#sig"), options);
     chart.render();
+
+
+function renderResults(results){
+    let svg = document.getElementById('cmpd-svg');
+    svg.innerHTML = results.props.svg;
+    let pubchem = document.getElementById('pubchem');
+    let rdkit = document.getElementById('rdkit');
+    phtml = '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">PubChem<br></p>';
+    rhtml = '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">RDKit<br></p>';
+    for(var key of Object.keys(results.props.pubchem)){
+        if (key == 'modified'){
+            continue;
+        }
+        phtml += '<p data-bs-toggle="tooltip" data-bss-tooltip="" data-bs-placement="left" style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+key+': '+results.props.pubchem[key]+'<br></p>';
+    }
+    pubchem.innerHTML = phtml;
+    for(var key of Object.keys(results.props.rdkit)){
+        if (key == 'modified'){
+            continue;
+        }
+        rhtml += '<p data-bs-toggle="tooltip" data-bss-tooltip="" data-bs-placement="left" style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+key+': '+results.props.rdkit[key]+'<br></p>';
+    }
+    rdkit.innerHTML = rhtml;
+}

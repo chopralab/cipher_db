@@ -241,7 +241,8 @@ def return_compound_image(inchikey):
     if comp is not None:
         if hasattr(comp, "image"):
             image = comp.image.read()
-            image = codecs.encode(image, 'base64').decode('utf-8')
+            image = image.decode("utf-8")
+            #image = codecs.encode(image, 'base64').decode('utf-8')
             return image
     return None
 

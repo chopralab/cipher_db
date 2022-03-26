@@ -45,15 +45,17 @@
                         <div class="row">
                             <div class="col">
                                 <p style="color: grey;font-size: 30px;text-align: left;margin-bottom: 5px;">Properties<i class="fa fa-pencil float-end" title="Edit All"></i></p>
-                                <hr><img src="assets/img/Screen%20Shot%202022-01-01%20at%203.47.10%20PM.png">
+                                <hr><!--img src="assets/img/Screen%20Shot%202022-01-01%20at%203.47.10%20PM.png"-->
+                                    <div id = "cmpd-svg"></div>
                                 <hr>
                                 <p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">SMILES<br></p>
                                 <p data-bs-toggle="tooltip" data-bss-tooltip="" data-bs-placement="left" style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;" title="Last update: 1/1/22 (Database trigger)">{{ smiles }}<br></p>
-                                <p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">InChI<br></p>
+                                <p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">InChI Key<br></p>
+                                <p data-bs-toggle="tooltip" data-bss-tooltip="" data-bs-placement="left" style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;" title="Last update: 1/1/22 (Database trigger)">{{ inchikey }}<br></p>
+                                <!--p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">InChI<br></p>
                                 <p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">{{ inchi }}<br></p>
                                 <p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Molecular Formula<br></p>
                                 <p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">{{ molformula | safe }}<br></p>
-                                <!--p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">CAS<br></p-->
                                 <p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Molecular Weight<br></p>
                                 <p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">{{ molwt }}<br></p>
                                 <p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Hydrogen Bond Donor Count<br></p>
@@ -61,8 +63,9 @@
                                 <p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Hydrogen Bond Acceptor Count<br></p>
                                 <p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">{{ hac }}<br></p>
                                 <p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">logP</p>
-                                <p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">{{ logp }}<br></p>
-                                <!--p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Bioassay Link</p-->
+                                <p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">{{ logp }}<br></p-->
+                                <div id="pubchem"></div>
+                                <div id="rdkit"></div>
                             </div>
                         </div>
                     </div>
@@ -92,22 +95,18 @@
                 </div>
             </div>
         </div>
-    </div><script>
+    </div>
+<script>
     //look for click on pencils
     //change paragraph to input field with a button on the right with a check mark
     //check  mark will change input field back into paragraph
     
-</script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.cells.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script>
-    let cmpdName = '{{ name }}';
-    console.log("{{ assays_json }}");
-    let assaysJSON = JSON.parse('{{ assays_json }}');
-    assaysJSON = JSON.stringify(assaysJSON,null,"\t");
-    assaysDisplay = document.getElementById("assays-json");
-    assaysDisplay.innerHTML = assaysJSON;
-</script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 <script src="{{ url_for('static', filename = 'assets/js/summary.js') }}"></script>
 <script src="{{ url_for('static', filename = 'assets/bootstrap/js/bootstrap.min.js') }}"></script>
 <script src="{{ url_for('static', filename = 'assets/js/bs-init.js') }}"></script>
