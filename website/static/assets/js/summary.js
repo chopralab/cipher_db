@@ -151,4 +151,18 @@ function renderResults(results){
         rhtml += '<p data-bs-toggle="tooltip" data-bss-tooltip="" data-bs-placement="left" style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+key+': '+results.props.rdkit[key]+'<br></p>';
     }
     rdkit.innerHTML = rhtml;
+    
+    let assaysContent = document.getElementById('assays-content');
+    ahtml = "";
+    console.log(results.assays)
+    for(let i=0; i<results.assays.length; i++){
+        ahtml += '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Assay  '+results.assays[i]._id+'<br></p>';
+        for (var key of Object.keys(results.assays[i])){
+            if (key == "_id"){
+                continue;
+            }
+            ahtml += '<p style="color: grey;font-size: 14px;text-align: left;margin-bottom:10px;">'+key+':  '+results.assays[i][key]+'<br></p>';
+        }
+    }
+    assaysContent.innerHTML = ahtml;
 }

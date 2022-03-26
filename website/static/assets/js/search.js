@@ -253,8 +253,8 @@ function renderResults(results){
         let assaysJSON = JSON.stringify(assays,null,"\t");
         let image = props[i].svg;
         let assaysList = "";
-        for(let j=0;j<assays[0].length;j++){
-            assaysList += '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Assay  '+assays[0][j]._id+'<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 0px;">Receptor: '+assays[0][j].receptor+'<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">Source: '+assays[0][j].source+'<br></p>';
+        for(let j=0;j<assays[i].length;j++){
+            assaysList += '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Assay  '+assays[i][j]._id+'<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 0px;">Receptor: '+assays[i][j].receptor+'<br></p><p style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">Source: '+assays[i][j].source+'<br></p>';
         }
         console.log(biosig);
         console.log(desired);
