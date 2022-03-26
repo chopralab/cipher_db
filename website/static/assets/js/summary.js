@@ -8,6 +8,13 @@ search(query);
 console.log("searching...");
 
 
+$( "#copy-json" ).click(function() {
+    navigator.clipboard.writeText(JSON.stringify(response));
+    icon = document.getElementById('clip-check');
+    icon.classList.remove('fa-clipboard');
+    icon.classList.add('fa-check');
+});
+
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -136,20 +143,24 @@ function renderResults(results){
     let pubchem = document.getElementById('pubchem');
     let rdkit = document.getElementById('rdkit');
     phtml = '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">PubChem<br></p>';
+    phtml += '<table style="table-layout: fixed; color: grey;border-style: solid;" class="table"><thead><tr><th scope="col">Property Name</th><th scope="col">Property Value</th></tr></thead><tbody>';
     rhtml = '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">RDKit<br></p>';
+    rhtml += '<table style="table-layout: fixed; color: grey;border-style: solid;" class="table"><thead><tr><th scope="col">Property Name</th><th scope="col">Property Value</th></tr></thead><tbody>';
     for(var key of Object.keys(results.props.pubchem)){
         if (key == 'modified'){
             continue;
         }
-        phtml += '<p data-bs-toggle="tooltip" data-bss-tooltip="" data-bs-placement="left" style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+key+': '+results.props.pubchem[key]+'<br></p>';
+        phtml += '<tr><td>'+key+'</td><td style="word-wrap:break-word;">'+results.props.pubchem[key]+'</td></tr>';
     }
+    phtml += '</tbody></table>';
     pubchem.innerHTML = phtml;
     for(var key of Object.keys(results.props.rdkit)){
         if (key == 'modified'){
             continue;
         }
-        rhtml += '<p data-bs-toggle="tooltip" data-bss-tooltip="" data-bs-placement="left" style="color: grey;font-size: 14px;text-align: left;margin-bottom: 10px;">'+key+': '+results.props.rdkit[key]+'<br></p>';
+        rhtml += '<tr><td>'+key+'</td><td style="word-wrap:break-word;">'+results.props.rdkit[key]+'</td></tr>';
     }
+    rhtml += '</tbody></table>';
     rdkit.innerHTML = rhtml;
     
     let assaysContent = document.getElementById('assays-content');
@@ -157,12 +168,14 @@ function renderResults(results){
     console.log(results.assays)
     for(let i=0; i<results.assays.length; i++){
         ahtml += '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Assay  '+results.assays[i]._id+'<br></p>';
+        ahtml += '<table style="table-layout: fixed; color: grey;border-style: solid;" class="table"><thead><tr><th scope="col">Property Name</th><th scope="col">Property Value</th></tr></thead><tbody>';
         for (var key of Object.keys(results.assays[i])){
             if (key == "_id"){
                 continue;
             }
-            ahtml += '<p style="color: grey;font-size: 14px;text-align: left;margin-bottom:10px;">'+key+':  '+results.assays[i][key]+'<br></p>';
+            ahtml += '<tr><td>'+key+'</td><td style="word-wrap:break-word;">'+results.assays[i][key]+'</td></tr>';
         }
+        ahtml += '</tbody></table>';
     }
     assaysContent.innerHTML = ahtml;
 }
