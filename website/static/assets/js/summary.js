@@ -178,4 +178,11 @@ function renderResults(results){
         ahtml += '</tbody></table>';
     }
     assaysContent.innerHTML = ahtml;
+    
+    let synth = document.getElementById('synth-routes');
+    let synthsList = "";
+    for (let j=0; j<results.synths.length; j++){
+        synthsList += '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Retrosynthetic route '+String(j+1)+'<br></p><img src="data:image/png;base64,'+results.synths[j]+'"><hr>'
+    }
+    synth.innerHTML = synthsList;
 }

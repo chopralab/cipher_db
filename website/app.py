@@ -1,5 +1,5 @@
 # Import statements
-from flask import Flask, request, render_template, redirect, jsonify
+from flask import Flask, request, render_template, redirect, jsonify, session
 from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image, return_desired_dynamic_biosignature, return_askcos_pathways
 from utils import *
 
@@ -12,6 +12,7 @@ from utils import *
 
 # Initalize the flask application
 app = Flask(__name__)
+app.secret_key = 'cipher'
 
 # Add this when we deploy to a domain with a SSL certificate
 # sslify = SSLify(app)
@@ -24,6 +25,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET','POST'])
 def index():
     if request.method == 'GET':
+        if "prev_term" not in session: session["prev_term"] = ""
         return render_template("index.html"), 200
     elif request.method == 'POST':
         pass
@@ -43,10 +45,12 @@ def add():
 @app.route('/search', methods=['GET','POST'])
 def search():
     if request.method == 'GET':
-        return render_template('search.html'), 200
+        if "prev_term" not in session: session["prev_term"] = ""
+        return render_template('search.html',term=session["prev_term"]), 200
     elif request.method == "POST":
         # Replace "naloxone" with the search term from the website frontend search bar
-        identifier = request.json['term']
+        identifier = request.json["term"]
+        session["prev_term"] = identifier
         print(identifier)
         #identifier = "naloxone"
         compounds_id_info = return_compounds(identifier)
