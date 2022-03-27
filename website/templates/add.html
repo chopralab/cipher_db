@@ -27,7 +27,7 @@
         <div class="row" data-aos="fade-up" style="color: rgb(33, 37, 41);background: white;border-radius: 25px;padding: 15px;margin-right: 10vh;margin-left: 10vh;margin-top: 5vh;">
             <div class="col justify-content-center">
                 <p style="color: grey;font-size: 40px;text-align: left;">Add compounds</p>
-                <div class="input-group" style="margin-bottom: 10px;"><input class="form-control" type="text" id="search" placeholder="Enter SMILES here..." autocomplete="off"><button class="btn btn-primary border-dark" id="button" type="button" style="background: var(--bs-gray-800);"><i class="fa fa-plus"></i></button></div>
+                <div class="input-group" style="margin-bottom: 10px;"><input class="form-control" type="text" id="input-smi" placeholder="Enter SMILES here..." autocomplete="off"><button class="btn btn-primary border-dark" id="button" type="button" style="background: var(--bs-gray-800);"><i class="fa fa-plus"></i></button></div>
                 <hr>
                 <div id="results" style="height: 62vh;overflow: scroll;overflow-x: hidden;"></div>
             </div>
@@ -38,7 +38,7 @@
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 <script src="{{ url_for('static', filename = 'assets/js/RDKit_minimal.js') }}"></script>
-<script src="{{ url_for('static', filename = 'assets/js/search.js') }}"></script>
+<script src="{{ url_for('static', filename = 'assets/js/add.js') }}"></script>
 <script src="{{ url_for('static', filename = 'assets/bootstrap/js/bootstrap.min.js') }}"></script>
 <script src="{{ url_for('static', filename = 'assets/js/bs-init.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>

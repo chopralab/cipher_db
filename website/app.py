@@ -37,7 +37,8 @@ def add():
     if request.method == 'GET':
         return render_template("add.html"), 200
     elif request.method == 'POST':
-        pass
+        #use request.json["smiles"] to access the smiles
+        return jsonify({})
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
