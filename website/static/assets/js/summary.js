@@ -212,7 +212,7 @@ function renderResults(results){
     let synth = document.getElementById('synth-routes');
     let synthsList = "";
     //for (let j=0; j<results.synths.length; j++){
-    for (let j=0; j<5; j++){
+    for (let j=0; j<Math.min(5,results.synths.length); j++){
         synthsList += '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">Retrosynthetic route '+String(j+1)+'<br></p><img src="data:image/png;base64,'+results.synths[j]+'"><hr>'
     }
     if (results.synths.length == 0) {
@@ -227,6 +227,9 @@ function renderResults(results){
     for (var key of Object.keys(desired[0])){
         if (desired[1][key] == -1){
             continue;
+        }
+        if (desired[0][key] == "partial agonist"){
+            desired[1][key] = desired[1][key];
         }
         if (desired[0][key] == "binder"){
             desired[1][key] = desired[1][key] + 3;
@@ -244,6 +247,9 @@ function renderResults(results){
     for (var key of Object.keys(biosig[0])){
         if (desired[1][key] == -1){
             continue;
+        }
+        if (biosig[0][key] == "partial agonist"){
+            biosig[1][key] = biosig[1][key];
         }
         if (biosig[0][key] == "binder"){
             biosig[1][key] = biosig[1][key] + 3;

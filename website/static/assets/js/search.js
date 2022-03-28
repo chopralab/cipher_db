@@ -265,7 +265,7 @@ function renderResults(results){
         }
         let synthsList = "";
         //for (let j=0; j<synths[i].length; j++){
-        for (let j=0; j<5; j++){
+        for (let j=0; j<Math.min(5,synths[i].length); j++){
             synthsList += '<img src="data:image/png;base64,'+synths[i][j]+'">'
         }
         if (synths[i].length == 0) {
@@ -278,6 +278,9 @@ function renderResults(results){
         for (var key of Object.keys(desired[0])){
             if (desired[1][key] == -1){
                 continue;
+            }
+            if (desired[0][key] == "partial agonist"){
+                desired[0][key] = desired[0][key];
             }
             if (desired[0][key] == "binder"){
                 desired[1][key] = desired[1][key]  + 3;
@@ -295,6 +298,9 @@ function renderResults(results){
         for (var key of Object.keys(biosig[i][0])){
             if (desired[1][key] == -1){
                 continue;
+            }
+            if (biosig[i][key] == "partial agonist"){
+                biosig[i][key] = biosig[i][key];
             }
             if (biosig[i][0][key] == "binder"){
                 biosig[i][1][key] = biosig[i][1][key] + 3;
