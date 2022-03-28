@@ -6,6 +6,8 @@ from typing import Any, Dict, Iterable, List, Optional
 import urllib3
 
 import requests
+from requests.auth import AuthBase
+from requests_toolbelt import sessions
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -22,38 +24,39 @@ class AskcosClient:
     def __init__(
         self,
         host: Optional[str] = None,
+        auth: Optional[AuthBase] = None,
         tree_params: Optional[Dict] = None,
-        timeout: int = 600,
+        timeout: int = 240,
         interval: int = 5,
         authenticate: bool = False,
     ):
         try:
-            self.host = host or os.environ["ASKCOS_HOST"]
+            self.sess = sessions.BaseUrlSession(host or os.environ["ASKCOS_HOST"])
         except KeyError:
             raise ValueError(
                 'arg "host" was not supplied, but ASKCOS_HOST environment variable is not set!'
             )
+        self.sess.auth = auth
 
-        resp = requests.get(self.host, verify=False)
-        if resp.status_code != 200:
-            error_msg = "ASKCOS host does not exist!"
+        if self.sess.get("", verify=False).status_code != 200:
+            msg = "ASKCOS host does not exist! "
             if host is not None:
-                error_msg += f" Tried to connect to: {self.host}"
+                msg += f"Tried to connect to: {self.sess.base_url}"
             else:
-                error_msg += f" Used value of ASKCOS_HOST environment variable: {self.host}"
-            raise ValueError(error_msg)
+                msg += f"Used value of ASKCOS_HOST environment variable: {self.sess.base_url}"
+            raise ValueError(msg)
 
         self.tree_params = tree_params.copy() if tree_params is not None else {}
         self.timeout = timeout
         self.interval = interval
-        self.headers = {}
+        
         if authenticate:
             self.authenticate()
 
     def authenticate(self):
-        url = self.host + AskcosEndpoints.AUTHENTICATION.value
-        resp = requests.post(
-            url,
+        # url = self.host + AskcosEndpoints.AUTHENTICATION.value
+        resp = self.sess.post(
+            AskcosEndpoints.AUTHENTICATION.value,
             data={
                 "username": os.environ["ASKCOS_USERNAME"],
                 "password": os.environ["ASKCOS_PASSWORD"],
@@ -61,7 +64,7 @@ class AskcosClient:
             verify=False,
         )
         token = resp.json()["token"]
-        self.headers = {"Authorization": f"Bearer {token}"}
+        self.sess.headers = {"Authorization": f"Bearer {token}"}
 
     def get_trees(self, smi: str, tree_params: Optional[Dict] = None) -> Optional[List[Dict]]:
         """get the retrosynthetic trees for the given smiles
@@ -86,14 +89,16 @@ class AskcosClient:
             if the request failed due to a client error, e.g., invalid SMILES string or bad tree
             parameter
         """
-        url = self.host + AskcosEndpoints.TREE_BUILDER.value
+        # url = self.host + AskcosEndpoints.TREE_BUILDER.value
         if tree_params is None:
-            tree_params = dict(smiles=smi, **self.tree_params)
+            payload = dict(smiles=smi, **self.tree_params)
         else:
-            tree_params = dict(smiles=smi, **tree_params)
+            payload = dict(smiles=smi, **tree_params)
 
         try:
-            resp = requests.post(url, data=tree_params, timeout=20, verify=False)
+            resp = self.sess.post(
+                AskcosEndpoints.TREE_BUILDER.value, data=payload, timeout=20, verify=False
+            )
             resp.raise_for_status()
         except requests.HTTPError as e:
             if resp.json()["smiles"] != smi:
@@ -114,9 +119,9 @@ class AskcosClient:
         num_results: int = 100,
         atommap: bool = False,
     ):
-        url = self.host + AskcosEndpoints.FORWARD.value
+        # url = self.host + AskcosEndpoints.FORWARD.value
 
-        data = {
+        payload = {
             "reactants": ".".join(reactants),
             "reagents": ".".join(reagents) if reagents else "",
             "solvent": solvent,
@@ -125,7 +130,7 @@ class AskcosClient:
         }
 
         try:
-            resp = requests.post(url, data, timeout=20, verify=False)
+            resp = self.sess.post(AskcosEndpoints.FORWARD.value, payload, timeout=20, verify=False)
             resp.raise_for_status()
         # except requests.HTTPError as e:
         #     if resp.json()["smiles"] != smi:
@@ -139,10 +144,12 @@ class AskcosClient:
         return self.get_result(resp.json()["task_id"], self.interval, self.timeout)
 
     def sc_score(self, smi: str) -> float:
-        url = self.host + AskcosEndpoints.SC_SCORE.value
+        # url = self.host + AskcosEndpoints.SC_SCORE.value
 
         try:
-            resp = requests.post(url, data={"smiles": smi}, timeout=20, verify=False)
+            resp = self.sess.post(
+                AskcosEndpoints.SC_SCORE.value, data={"smiles": smi}, timeout=20, verify=False
+            )
             resp.raise_for_status()
         except requests.HTTPError as e:
             if resp.json()["smiles"] != smi:
@@ -156,11 +163,11 @@ class AskcosClient:
         return resp.json()["score"]
 
     def get_result(self, task_id, interval: float, timeout: float) -> Optional[Any]:
-        url = self.host + AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/"
+        # url = self.host + AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/"
 
         start = time.time()
         while True:
-            resp = requests.get(url, verify=False)
+            resp = self.sess.get(AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/", verify=False)
             res = resp.json()
 
             if res["complete"]:

@@ -78,13 +78,15 @@ def build_synthetic_tree(tree: Dict) -> SyntheticTree:
     st.cluster_id = tree["attributes"]["cluster_id"]
     st.root = build_chemical_node(tree)
 
-    with tempfile.NamedTemporaryFile() as fid, warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=graphviz.exceptions.UnknownSuffixWarning)
-        g = viz.tree_to_graph(viz.clean_tree(tree))
-        g.render(outfile=fid.name, format="png", cleanup=True)
-        fid.seek(0)
-        st.image = fid
-
+    try:
+        with tempfile.NamedTemporaryFile() as fid, warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=graphviz.exceptions.UnknownSuffixWarning)
+            g = viz.tree_to_graph(viz.clean_tree(tree))
+            g.render(outfile=fid.name, format="png", cleanup=True)
+            fid.seek(0)
+            st.image = fid
+    except (IOError, graphviz.backend.execute.CalledProcessError) as e:
+        print(e)
     return st
 
 
@@ -93,7 +95,10 @@ def build_retrosynthesis(inchikey, smiles):
 
     retro.inchikey = inchikey
     retro.smiles = smiles
-    retro.trees = [build_synthetic_tree(tree) for tree in ASKCOS_CLIENT.get_trees(smiles)]
+
+    trees = ASKCOS_CLIENT.get_trees(smiles)
+    if trees:
+        retro.trees = [build_synthetic_tree(t) for t in trees]
 
     retro.save()
 
