@@ -4,11 +4,12 @@ import os
 import tempfile
 from typing import Dict
 import warnings
-from cipher_reactivity.client import AskcosClient
-from cipher_reactivity.sascorer import SAScorer
 
 import graphviz
+import tomli
 
+from cipher_reactivity.client import AskcosClient
+from cipher_reactivity.sascorer import SAScorer
 from cipher_reactivity import viz
 from cipher_reactivity.docs import (
     ChemicalNode,
@@ -17,7 +18,6 @@ from cipher_reactivity.docs import (
     Retrosynthesis,
     SyntheticTree,
 )
-import tomli
 
 
 ASKCOST_HOST = os.environ["ASKCOS_HOST"]
@@ -25,7 +25,7 @@ try:
     TREE_PARAMS = tomli.loads(resources.read_text("cipher_reactivity.data", "tree_params.toml"))
 except ValueError:
     TREE_PARAMS = None
-ASKCOS_CLIENT = AskcosClient(ASKCOST_HOST, TREE_PARAMS)
+# ASKCOS_CLIENT = AskcosClient(ASKCOST_HOST, tree_params=TREE_PARAMS)
 
 SA_SCORER = SAScorer(json.loads(resources.read_text("cipher_reactivity.data", "fpscores.json")))
 
@@ -85,7 +85,11 @@ def build_synthetic_tree(tree: Dict) -> SyntheticTree:
             g.render(outfile=fid.name, format="png", cleanup=True)
             fid.seek(0)
             st.image = fid
-    except (IOError, graphviz.backend.execute.CalledProcessError) as e:
+    except (
+        IOError,
+        graphviz.backend.execute.CalledProcessError,
+        graphviz.backend.execute.ExecutableNotFound
+    ) as e:
         print(e)
     return st
 

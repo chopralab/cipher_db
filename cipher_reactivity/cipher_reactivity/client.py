@@ -141,7 +141,7 @@ class AskcosClient:
             print(e)
             return None
 
-        return self.get_result(resp.json()["task_id"], self.interval, self.timeout)
+        return self.get_result(resp.json()["task_id"], 1, self.timeout)
 
     def sc_score(self, smi: str) -> float:
         # url = self.host + AskcosEndpoints.SC_SCORE.value
