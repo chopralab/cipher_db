@@ -3,11 +3,11 @@ import json
 import os
 import time
 from typing import Any, Dict, Iterable, List, Optional
-import urllib3
 
 import requests
 from requests.auth import AuthBase
 from requests_toolbelt import sessions
+import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
