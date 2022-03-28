@@ -264,7 +264,8 @@ function renderResults(results){
             assaysList = '<p style="color: grey;font-size: 20px;text-align: left;margin-bottom: 0px;">No assay information available<br></p>';
         }
         let synthsList = "";
-        for (let j=0; j<synths[i].length; j++){
+        //for (let j=0; j<synths[i].length; j++){
+        for (let j=0; j<5; j++){
             synthsList += '<img src="data:image/png;base64,'+synths[i][j]+'">'
         }
         if (synths[i].length == 0) {
@@ -279,7 +280,7 @@ function renderResults(results){
                 continue;
             }
             if (desired[0][key] == "binder"){
-                desired[1][key] = desired[1][key];
+                desired[1][key] = desired[1][key]  + 3;
             }
             if (desired[0][key] == "agonism"){
                 desired[1][key] = desired[1][key] + 1;
@@ -296,7 +297,7 @@ function renderResults(results){
                 continue;
             }
             if (biosig[i][0][key] == "binder"){
-                biosig[i][1][key] = biosig[i][1][key];
+                biosig[i][1][key] = biosig[i][1][key] + 3;
             }
             if (biosig[i][0][key] == "agonism"){
                 biosig[i][1][key] = biosig[i][1][key] + 1;
