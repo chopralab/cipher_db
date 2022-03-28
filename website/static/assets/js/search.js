@@ -161,7 +161,7 @@ function renderBiosig(cmpdName,inchikey,cmpdBiosig,desired){
     },
     plotOptions: {
       heatmap: {
-        shadeIntensity: 0.5,
+        shadeIntensity: 1,
         radius: 0,
         useFillColorAsStroke: true,
         colorScale: {
@@ -190,7 +190,7 @@ function renderBiosig(cmpdName,inchikey,cmpdBiosig,desired){
               color: '#050505'
             },
             {
-              from: -1,
+              from: -9999999999999999999,
               to: -1,
               name: 'Null',
               color: '#ed3e3e'
