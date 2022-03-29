@@ -13,4 +13,6 @@ chemical_popularity_logic = "none"
 min_chempop_reactants = 5
 min_chempop_products = 5
 filter_threshold = 0.01
-return_first = "true"
+return_first = true
+store_results = true
+score_trees = true

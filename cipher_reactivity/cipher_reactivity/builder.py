@@ -25,7 +25,7 @@ try:
     TREE_PARAMS = tomli.loads(resources.read_text("cipher_reactivity.data", "tree_params.toml"))
 except ValueError:
     TREE_PARAMS = None
-# ASKCOS_CLIENT = AskcosClient(ASKCOST_HOST, tree_params=TREE_PARAMS)
+ASKCOS_CLIENT = AskcosClient(ASKCOST_HOST, tree_params=TREE_PARAMS, authenticate=True)
 
 SA_SCORER = SAScorer(json.loads(resources.read_text("cipher_reactivity.data", "fpscores.json")))
 
@@ -100,10 +100,12 @@ def build_retrosynthesis(inchikey, smiles):
     retro.inchikey = inchikey
     retro.smiles = smiles
 
-    trees = ASKCOS_CLIENT.get_trees(smiles)
-    if trees:
+    result = ASKCOS_CLIENT.get_trees(smiles)
+    if result:
+        trees, task_id = result
         retro.trees = [build_synthetic_tree(t) for t in trees]
-
+        retro.task_id = task_id
+        
     retro.save()
 
     return retro

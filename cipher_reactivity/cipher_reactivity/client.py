@@ -2,7 +2,7 @@ from enum import Enum
 import json
 import os
 import time
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import requests
 from requests.auth import AuthBase
@@ -66,8 +66,10 @@ class AskcosClient:
         token = resp.json()["token"]
         self.sess.headers = {"Authorization": f"Bearer {token}"}
 
-    def get_trees(self, smi: str, tree_params: Optional[Dict] = None) -> Optional[List[Dict]]:
-        """get the retrosynthetic trees for the given smiles
+    def get_trees(
+        self, smi: str, tree_params: Optional[Dict] = None
+    ) -> Optional[Tuple[List[Dict], str]]:
+        """get the retrosynthetic trees for the given smiles. Return None if the job fails
 
         Parameters
         ----------
@@ -79,9 +81,11 @@ class AskcosClient:
 
         Returns
         -------
-        Optional[Dict]
+        Dict
             the dictionaries corresponding to retrosynthetic trees of the tree builder
             request. None if the tree builder job failed for any server error
+        str
+            the task-id for the associated tree-builder job
 
         Raises
         ------
@@ -89,11 +93,11 @@ class AskcosClient:
             if the request failed due to a client error, e.g., invalid SMILES string or bad tree
             parameter
         """
-        # url = self.host + AskcosEndpoints.TREE_BUILDER.value
         if tree_params is None:
             payload = dict(smiles=smi, **self.tree_params)
         else:
             payload = dict(smiles=smi, **tree_params)
+        payload["description"] = payload.get("description", smi)
 
         try:
             resp = self.sess.post(
@@ -118,9 +122,7 @@ class AskcosClient:
         solvent: Optional[str] = "",
         num_results: int = 100,
         atommap: bool = False,
-    ):
-        # url = self.host + AskcosEndpoints.FORWARD.value
-
+    ) -> List[Dict]:
         payload = {
             "reactants": ".".join(reactants),
             "reagents": ".".join(reagents) if reagents else "",
@@ -141,7 +143,7 @@ class AskcosClient:
             print(e)
             return None
 
-        return self.get_result(resp.json()["task_id"], 1, self.timeout)
+        return self.get_result(resp.json()["task_id"], 1, self.timeout)[0]
 
     def sc_score(self, smi: str) -> float:
         # url = self.host + AskcosEndpoints.SC_SCORE.value
@@ -163,15 +165,13 @@ class AskcosClient:
         return resp.json()["score"]
 
     def get_result(self, task_id, interval: float, timeout: float) -> Optional[Any]:
-        # url = self.host + AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/"
-
         start = time.time()
         while True:
             resp = self.sess.get(AskcosEndpoints.TASK_RETRIEVAL.value + f"{task_id}/", verify=False)
             res = resp.json()
 
             if res["complete"]:
-                return res["output"]
+                return res["output"], res["task_id"]
             if res["failed"]:
                 print(res["error"])
                 return None
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     client = AskcosClient(None, params)
     smi = "CCN(CC)CCOC(C)(c1ccccc1)c1ccc(Cl)cc1"
 
-    trees = client.get_trees(smi)
+    trees, _ = client.get_trees(smi)
     print(json.dumps(trees, indent=2))
 
     print(client.sc_score(smi))
