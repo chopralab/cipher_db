@@ -52,7 +52,6 @@ def search():
         # Replace "naloxone" with the search term from the website frontend search bar
         identifier = request.json["term"]
         session["prev_term"] = identifier
-        print(identifier)
         #identifier = "naloxone"
         compounds_id_info = return_compounds(identifier)
         compounds_property_info = []
@@ -60,7 +59,6 @@ def search():
         compounds_binding_sigs = []
         compounds_retro_pathways = []
         for doc in compounds_id_info:
-            print(doc)
             compounds_property_info.append(return_properties(doc["_id"]))
             compounds_assay_info.append(return_assays(doc["_id"]))
             compounds_binding_sigs.append(return_biosignature(doc["_id"]))
@@ -71,7 +69,6 @@ def search():
             #temp appending of pathway images to compounds_retro_pathways:
             compounds_retro_pathways.append(return_askcos_pathways(entry["_id"]))
         respone = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways, "desired": return_desired_dynamic_biosignature()}
-        print(respone)
         return jsonify(respone)
         # Compound id info has identifying information about each compound picked up by the search --- list(json formatted dict)
         # Compound property info has propery information from pubchem and rdkit of each compound picked up by the search --- list(json fromatted dict)
@@ -84,7 +81,6 @@ def search():
 @app.route('/info', methods=['GET','POST'])
 def info():
     if request.method == 'POST':
-        print(request.json)
         compounds_id_info = return_compounds(request.json['inchikey'])
         compounds_property_info = return_properties(request.json['inchikey'])
         compounds_assay_info = return_assays(request.json['inchikey'])
@@ -105,7 +101,6 @@ def summary(inchikey):
         compounds_assay_info = return_assays(inchikey)
         compounds_binding_sigs = return_biosignature(inchikey)
         compounds_retro_pathways = return_askcos_pathways(inchikey)
-        print(compounds_id_info)
         # These are the same as in the search method except one layer of the lists are removed because there is only one compound now
         return render_template("summary.html",name=compounds_id_info[0]["name"].capitalize(),smiles=compounds_id_info[0]["smiles"],inchi=compounds_id_info[0]["inchi"],molformula=render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"]),molwt=compounds_property_info["pubchem"]["MolecularWeight"],hdc=compounds_property_info["pubchem"]["HBondDonorCount"],hac=compounds_property_info["pubchem"]["HBondAcceptorCount"],logp=compounds_property_info["rdkit"]["MolLogP"],inchikey=inchikey), 200
     elif request.method == 'POST':
