@@ -130,8 +130,8 @@ function renderBiosigs(desired, top){
             colorScale: {
               ranges: [
                 {
-                  from: 3,
-                  to: 4.01,
+                  from: 0,
+                  to: 1.01,
                   name: 'Unknown effect',
                   color: '#050505'
                 }
@@ -185,10 +185,10 @@ function renderResults(results){
             continue;
         }
         if (desired[2][key] == "partial agonist"){
-            desired[1][key] = desired[1][key];
+            desired[1][key] = desired[1][key] + 3;
         }
         if (desired[2][key] == "binder"){
-            desired[1][key] = desired[1][key] + 3;
+            desired[1][key] = desired[1][key];
         }
         if (desired[2][key] == "agonism"){
             desired[1][key] = desired[1][key] + 1;
@@ -197,7 +197,7 @@ function renderResults(results){
             desired[1][key] = desired[1][key] + 2;
         }
         if (desired[2][key] == "unknown"){
-            desired[1][key] = desired[1][key] + 3;
+            desired[1][key] = desired[1][key];
         }
     }
     
@@ -207,10 +207,10 @@ function renderResults(results){
                 continue;
             }
             if (top[i][2][key] == "partial agonist"){
-                top[i][1][key] = top[i][1][key];
+                top[i][1][key] = top[i][1][key] + 3;
             }
             if (top[i][2][key] == "binder"){
-                top[i][1][key] = top[i][1][key] + 3;
+                top[i][1][key] = top[i][1][key];
             }
             if (top[i][2][key] == "agonism"){
                 top[i][1][key] = top[i][1][key] + 1;
@@ -219,7 +219,7 @@ function renderResults(results){
                 top[i][1][key] = top[i][1][key] + 2;
             }
             if (top[i][2][key] == "unknown"){
-                top[i][1][key] = top[i][1][key] + 3;
+                top[i][1][key] = top[i][1][key];
             }
         }
     }
