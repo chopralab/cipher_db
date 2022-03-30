@@ -128,12 +128,35 @@ function renderBiosigs(desired, top){
             radius: 0,
             useFillColorAsStroke: true,
             colorScale: {
-              ranges: [
-                {
+              ranges: [{
                   from: 0,
-                  to: 1.01,
+                  to: 1,
+                  name: 'Partial agonism',
+                  color: '#00A100'
+                },
+                {
+                  from: 1,
+                  to: 2,
+                  name: 'Agonism',
+                  color: '#128FD9'
+                },
+                {
+                  from: 2,
+                  to: 3,
+                  name: 'Antagonism',
+                  color: '#FFB200'
+                },
+                {
+                  from: 3,
+                  to: 4,
                   name: 'Unknown effect',
                   color: '#050505'
+                },
+                {
+                  from: -9999999999999999999,
+                  to: -1,
+                  name: 'Null',
+                  color: '#ed3e3e'
                 }
               ]
             }
@@ -185,10 +208,10 @@ function renderResults(results){
             continue;
         }
         if (desired[2][key] == "partial agonist"){
-            desired[1][key] = desired[1][key] + 3;
+            desired[1][key] = desired[1][key];
         }
         if (desired[2][key] == "binder"){
-            desired[1][key] = desired[1][key];
+            desired[1][key] = desired[1][key] + 3;
         }
         if (desired[2][key] == "agonism"){
             desired[1][key] = desired[1][key] + 1;
@@ -197,7 +220,7 @@ function renderResults(results){
             desired[1][key] = desired[1][key] + 2;
         }
         if (desired[2][key] == "unknown"){
-            desired[1][key] = desired[1][key];
+            desired[1][key] = desired[1][key] + 3;
         }
     }
     
@@ -207,10 +230,10 @@ function renderResults(results){
                 continue;
             }
             if (top[i][2][key] == "partial agonist"){
-                top[i][1][key] = top[i][1][key] + 3;
+                top[i][1][key] = top[i][1][key];
             }
             if (top[i][2][key] == "binder"){
-                top[i][1][key] = top[i][1][key];
+                top[i][1][key] = top[i][1][key] + 3;
             }
             if (top[i][2][key] == "agonism"){
                 top[i][1][key] = top[i][1][key] + 1;
@@ -219,7 +242,7 @@ function renderResults(results){
                 top[i][1][key] = top[i][1][key] + 2;
             }
             if (top[i][2][key] == "unknown"){
-                top[i][1][key] = top[i][1][key];
+                top[i][1][key] = top[i][1][key] + 3;
             }
         }
     }
