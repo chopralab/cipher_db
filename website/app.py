@@ -3,12 +3,6 @@ from flask import Flask, request, render_template, redirect, jsonify, session
 from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image, return_desired_dynamic_biosignature, return_askcos_pathways
 from utils import *
 
-import sys
-sys.path.append("../")
-
-from cipher_identifiers.utils.compounds import id_compound_from_smiles
-from cipher_properties.utils.properties import insert_properties_from_smiles
-
 #------------------------------------------------------
 #--------------- Flask Initilization ------------------
 #------------------------------------------------------
@@ -72,8 +66,7 @@ def search():
             compounds_binding_sigs.append(return_biosignature(doc["_id"]))
             compounds_retro_pathways.append(return_askcos_pathways(doc["_id"]))
         for entry in compounds_property_info:
-            if "MolecularFormula" in entry["pubchem"]:
-                entry["pubchem"]["MolecularFormula"] = render_mol_formula(entry["pubchem"]["MolecularFormula"])
+            entry["pubchem"]["MolecularFormula"] = render_mol_formula(entry["pubchem"]["MolecularFormula"])
             entry["svg"] = return_compound_image(entry["_id"]).replace("height='300px'","height='200px'").replace("width='300px'","width='200px'")
             #temp appending of pathway images to compounds_retro_pathways:
             compounds_retro_pathways.append(return_askcos_pathways(entry["_id"]))

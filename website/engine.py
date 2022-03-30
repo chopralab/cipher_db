@@ -1,5 +1,4 @@
 # Import statements
-from ast import Del
 from unittest import result
 from flask import Flask
 from matplotlib import image
@@ -222,8 +221,6 @@ def return_askcos_pathways(inchikey):
                 image = tree.image.read()
                 image = codecs.encode(image, "base64").decode("utf-8")
                 images.append(image)
-                if len(images) >= 5:
-                    return images
     return images
 
 def return_compound_image(inchikey):
@@ -251,178 +248,6 @@ def return_compound_image(inchikey):
 
 def return_desired_dynamic_biosignature():
     return return_biosignature("RMRJXGBAOAMLHD-IHFGGWKQSA-N")
-
-def return_biosig_knn():
-    MU = "muOR"
-    DELTA = "deltaOR"
-    KAPPA = "kappaOR"
-    NOCICEPTIN = "nociceptinOR"
-    DRD2 = "DRD2"
-    D2LDR = "D2LDR"
-    DRD3 = "DRD3"
-    NMDAR = "NMDAR"
-    AMPAR = "AMPAR"
-
-    desired_inchikey = "MEDBIJOVZJEMBI-YOEHRIQHSA-N"
-    desired_binding = {
-        MU: 0.5599000811030008,
-        DELTA: 0.5698982968369829,
-        KAPPA: 0.5798965125709651,
-        NOCICEPTIN: 0.5698982968369829,
-        DRD2: 0.6598822384428223,
-        D2LDR: 0.6498840227088402,
-        DRD3: 0.6698804541768045,
-        AMPAR: 0.9790476885644768,
-        NMDAR: 0.3788042173560422
-    }
-    desire_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
-        DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
-    }
-
-    desired_tuple = (desired_inchikey, desired_binding, desire_moa)
-
-    rank_tuple_list = []
-
-    rank_1_inchikey = "JNMNNRVDGXJQLN-KTORXTNWSA-N"
-    rank_1_binding = {
-        MU: 0.5594731549067317,
-        DELTA: 0.5694637469586374,
-        KAPPA: 0.5794543390105433,
-        NOCICEPTIN: 0.5694637469586374,
-        DRD2: 0.6593790754257908,
-        D2LDR: 0.6493884833738849,
-        DRD3: 0.6693696674776968,
-        AMPAR: 0.9808571776155716,
-        NMDAR: 0.3743107866991079
-    }
-    rank_1_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
-        DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
-    }
-
-    rank_tuple_list.append((rank_1_inchikey, rank_1_binding, rank_1_moa))
-
-    rank_2_inchikey = "RUBLVZVSFNQVDH-KTORXTNWSA-N"
-    rank_2_binding = {
-        MU: 0.5595458231954583,
-        DELTA: 0.5695377128953771,
-        KAPPA: 0.5795296025952961,
-        NOCICEPTIN: 0.5695377128953771,
-        DRD2: 0.6594647201946473,
-        D2LDR: 0.6494728304947284,
-        DRD3: 0.6694566098945662,
-        AMPAR: 0.9842316301703162,
-        NMDAR: 0.3751305758313058
-    }
-    rank_2_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
-        DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
-    }
-
-    rank_tuple_list.append((rank_2_inchikey, rank_2_binding, rank_2_moa))
-
-    rank_3_inchikey = "YWPDLIIADJEZCI-WIQVGVEKSA-N"
-    rank_3_binding = {
-        MU: 0.5588918085969181,
-        DELTA:  0.5688720194647201,
-        KAPPA: 0.5788522303325222,
-        NOCICEPTIN: 0.5688720194647201,
-        DRD2: 0.6586939172749392,
-        D2LDR: 0.6487137064071371,
-        DRD3: 0.6686741281427413,
-        AMPAR: 0.9370545012165449,
-        NMDAR: 0.3795746958637469
-    }
-    rank_3_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
-        DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
-    }
-
-    rank_tuple_list.append((rank_3_inchikey, rank_3_binding, rank_3_moa))
-
-    rank_4_inchikey = "OABRBEVLHRMYIG-YOEHRIQHSA-O"
-    rank_4_binding = {
-        MU: 0.5799059205190592,
-        DELTA: 0.589904298459043,
-        KAPPA: 0.5799059205190592,
-        NOCICEPTIN: 0.5999026763990268,
-        DRD2: 0.7298815896188159,
-        D2LDR: 0.6598929440389295,
-        DRD3: 0.6598929440389295,
-        AMPAR: 0.996457907542579,
-        NMDAR:0.36647039740470394
-    }
-    rank_4_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
-        DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
-    }
-
-    rank_tuple_list.append((rank_4_inchikey, rank_4_binding, rank_4_moa))
-
-    rank_5_inchikey = "WAQVQXBRZLVELM-DDONCOPRSA-N"
-    rank_5_binding = {
-        MU: 0.5796707218167072,
-        DELTA: 0.5896650446066504,
-        KAPPA: 0.5796707218167072,
-        NOCICEPTIN: 0.5996593673965936,
-        DRD2: 0.7295855636658556,
-        D2LDR: 0.6596253041362531,
-        DRD3: 0.6596253041362531,
-        AMPAR: 1.0020004866180048,
-        NMDAR: 0.3627227899432279 
-    }
-    rank_5_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
-        DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
-    }
-
-    rank_tuple_list.append((rank_5_inchikey, rank_5_binding, rank_5_moa))
-
-    return desired_tuple, rank_tuple_list
-
 
 def testing():
     compounds_id_info = return_compounds("RONZAEMNMFQXRA-UHFFFAOYSA-N")
@@ -455,11 +280,14 @@ def testing():
     print("Desired Biosignature CANDO Binding Vector")
     print(d_binding)
 
-    desired_tuple, rank_tuple_list = return_biosig_knn()
-    print("Desired Tuple")
-    print(desired_tuple)
-    print("Ranked Tuple List")
-    print(rank_tuple_list)
+    decoded_image = open("temp/RONZAEMNMFQXRA-UHFFFAOYSA-N.svg", 'wb')
+    decoded_image.write(base64.b64decode(image))
+    decoded_image.close()
+
+    for i in range(len(retro)):
+        decoded_image = open("temp/RONZAEMNMFQXRA-UHFFFAOYSA-N_tree_{}.png".format(i), 'wb')
+        decoded_image.write(base64.b64decode(retro[i]))
+        decoded_image.close()
 
 
 if __name__ == "__main__":

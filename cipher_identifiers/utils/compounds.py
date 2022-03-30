@@ -1,4 +1,3 @@
-from ast import Str
 from turtle import update
 import requests
 import json
@@ -137,7 +136,7 @@ def id_compound_from_smiles(smiles):
     print(
         "Inserted Object with InChI Key {} to Compounds Collection of the database".format(inchikey)
     )
-    return comp.inchikey
+    return True
 
 def id_compounds_from_inchikey(inchikey):
     if Compounds.objects.with_id(inchikey) is not None:
@@ -185,7 +184,6 @@ if __name__ == "__main__":
     parser.add_argument("--inchikey", type=str, help="The SMILES string to be added to the database")
     parser.add_argument("--get-image", action="store_true")
     parser.add_argument("--count", action="store_true")
-    parser.add_argument("--name", type=str)
     args = parser.parse_args()
 
     if args.testing:
@@ -209,9 +207,4 @@ if __name__ == "__main__":
         print(Compounds.objects().count())
     else:
         if args.smiles is not None:
-            inchikey = id_compound_from_smiles(smiles=args.smiles)
-            sleep(1)
-            if args.name is not None:
-                comp = Compounds.objects().with_id(inchikey)
-                comp.name = args.name
-                comp.save()
+            id_compound_from_smiles(smiles=args.smiles)

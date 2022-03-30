@@ -54,8 +54,27 @@ def insert_pubchem_assays_from_json(fname, receptor, source):
 
 
 
-def insert_bulk_assays():
-     # RECEPTOR CONSTANTS
+def insert_assay_from_csv():
+    pass
+
+if __name__ == "__main__":
+    import argparse
+    import os
+    from os.path import exists
+    import mongoengine as me
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--testing", action="store_true", help="Flag if inserting into the testing database")
+    args = parser.parse_args()
+
+    if args.testing:
+        URI = os.environ["TESTING_URI"]
+    else:
+        URI = os.environ["MONGO_URI"]
+
+    me.connect(host=URI)
+
+    # RECEPTOR CONSTANTS
     DELTA = "deltaOR"
     KAPPA = "kappaOR"
     MU = "muOR"
@@ -70,6 +89,7 @@ def insert_bulk_assays():
     CHEMBL = "chembl"
     DRUGBANK = "drugbank"
     IUPHAR = "iuphar"
+    
     
     # DELTA
     chembl_delta_or_1 = "../data/PUBCHEM/DELTA/delta_opioid_receptor_chembl_drugs_1.json"
@@ -194,40 +214,3 @@ def insert_bulk_assays():
     insert_pubchem_assays_from_json(chembl_AMPAR, receptor=AMPAR, source=CHEMBL)
     insert_pubchem_assays_from_json(drugbank_AMPAR, receptor=AMPAR, source=DRUGBANK)
     insert_pubchem_assays_from_json(iuphar_AMPAR, receptor=AMPAR, source=IUPHAR)
-
-if __name__ == "__main__":
-    import argparse
-    import os
-    from os.path import exists
-    import mongoengine as me
-
-    # RECEPTOR CONSTANTS
-    DELTA = "deltaOR"
-    KAPPA = "kappaOR"
-    MU = "muOR"
-    NOCICEPTIN = "nociceptinOR"
-    SIGMA = "sigmaOR"
-    DRD2 = "DRD2"
-    DRD3 = "DRD3"
-    AMPAR = "AMPAR"
-    NMDAR = "NMDAR"
-
-    # SOURCE CONSTANTS
-    CHEMBL = "chembl"
-    DRUGBANK = "drugbank"
-    IUPHAR = "iuphar"
-    BIOASSAY = "pubchem bioassay"
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--testing", action="store_true", help="Flag if inserting into the testing database")
-    args = parser.parse_args()
-
-    if args.testing:
-        URI = os.environ["TESTING_URI"]
-    else:
-        URI = os.environ["MONGO_URI"]
-
-    me.connect(host=URI)
-
-    pzm21_bioassay_data = "../data/Bioassay/PZM21_BioAssay_Data.json"
-    insert_pubchem_assays_from_json(pzm21_bioassay_data, receptor=MU, source=BIOASSAY)
