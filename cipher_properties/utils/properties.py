@@ -161,12 +161,7 @@ def __make_url_request(inchikey, url):
         data = json.loads(response.text)
         return data
     else:
-        raise InvalidRequestError(
-            "Invalid Request - Request on InChi Key "
-            + inchikey
-            + " failed with status code "
-            + response.status_code
-        )
+        return None
 
 
 def insert_properties_from_smiles(smiles, inchikey, properties=["All"]):
@@ -187,7 +182,10 @@ def insert_properties_from_smiles(smiles, inchikey, properties=["All"]):
     try:
         url = __format_request_url(inchikey, properties)
         data = __make_url_request(inchikey, url)
-        data = data["PropertyTable"]["Properties"][0]
+        if data is not None:
+            data = data["PropertyTable"]["Properties"][0]
+        else:
+            data = {}
 
         pc = Pubchem()
         for key, val in data.items():
