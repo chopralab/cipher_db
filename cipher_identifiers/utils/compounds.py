@@ -3,7 +3,7 @@ from turtle import update
 import requests
 import json
 from rdkit import Chem, RDLogger
-from rdkit.Chem import Draw
+#from rdkit.Chem import Draw
 from time import sleep
 import os
 import codecs

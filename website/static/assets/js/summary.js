@@ -134,7 +134,7 @@ function renderBiosig(cmpdName,inchikey,cmpdBiosig,desired){
       width: 1
     },
     title: {
-      text: capitalizeFirstLetter(cmpdName) + ' — Last updated 1/1/2022'
+      text: capitalizeFirstLetter(cmpdName)
     },
      xaxis: {
          type: 'category',

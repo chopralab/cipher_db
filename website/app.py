@@ -1,6 +1,6 @@
 # Import statements
 from flask import Flask, request, render_template, redirect, jsonify, session
-from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image, return_desired_dynamic_biosignature, return_askcos_pathways
+from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image, return_desired_dynamic_biosignature, return_askcos_pathways, return_biosig_knn
 from utils import *
 
 import sys
@@ -46,6 +46,13 @@ def add():
         #use request.json["smiles"] to access the smiles
         request.json["smiles"]
         return jsonify({})
+    else:
+        return "<pre>" + "Request method not supported" + "</pre>", 400
+
+@app.route('/top', methods=['GET','POST'])
+def top():
+    if request.method == 'POST':
+        return jsonify({"desired": return_biosig_knn()[0], "top": return_biosig_knn()[1]})
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
