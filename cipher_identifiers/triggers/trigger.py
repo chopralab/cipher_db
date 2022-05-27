@@ -33,10 +33,11 @@ def compounds_trigger():
                 smiles = doc["smiles"]
                 id = change["documentKey"]["_id"]
                 m = Chem.MolFromSmiles(smiles)
+                inchikey = Chem.MolToInchiKey(m)
                 if id != Chem.MolToInchiKey(m):
                     compounds_coll.delete_one({"_id": id})
                 try:
-                    id_compound_from_smiles(smiles)
+                    id_compound_from_smiles(smiles, inchikey)
                 except Exception as e:
                     print(e)
                     compounds_coll.delete_one({"_id": id})
