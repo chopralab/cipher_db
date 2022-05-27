@@ -94,23 +94,23 @@ function renderBiosigs(desired, top){
     
     var options = {
           series: [{
-            name: 'NAA Candidate 5',
+            name: 'NAA Candidate 2575',
             data: t5
           },
           {
-            name: 'NAA Candidate 4',
+            name: 'NAA Candidate 3180',
             data: t4
           },
           {
-            name: 'NAA Candidate 3',
+            name: 'NAA Candidate 4442',
             data: t3
           },
           {
-            name: 'NAA Candidate 2',
+            name: 'NAA Candidate 4441',
             data: t2
           },
           {
-            name: 'NAA Candidate 1',
+            name: 'NAA Candidate 516',
             data: t1
           },
           {

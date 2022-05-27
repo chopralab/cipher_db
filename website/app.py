@@ -1,13 +1,14 @@
 # Import statements
-from flask import Flask, request, render_template, redirect, jsonify, session
+from flask import Flask, request, render_template, redirect, jsonify, session, abort
 from engine import return_compounds, return_properties, return_biosignature, return_askcos_pathways, return_assays, return_compound_image, return_desired_dynamic_biosignature, return_askcos_pathways, return_biosig_knn
 from utils import *
+from json import dumps, loads
 
 import sys
 sys.path.append("../")
 
 from cipher_identifiers.utils.compounds import id_compound_from_smiles
-from cipher_properties.utils.properties import insert_properties_from_smiles
+from cipher_properties.utils.properties import insert_properties_from_smiles, Properties
 
 #------------------------------------------------------
 #--------------- Flask Initilization ------------------
@@ -105,7 +106,16 @@ def info():
         compounds_assay_info = return_assays(request.json['inchikey'])
         compounds_binding_sigs = return_biosignature(request.json['inchikey'])
         compounds_retro_pathways = return_askcos_pathways(request.json['inchikey'])
-        compounds_property_info["pubchem"]["MolecularFormula"] = render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"])
+        if "MolecularFormula" not in compounds_property_info["pubchem"]:
+            compounds_property_info["pubchem"]["MolecularFormula"] = ""
+        else:
+            compounds_property_info["pubchem"]["MolecularFormula"] = render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"])
+        if "MolecularWeight" not in compounds_property_info["pubchem"]:
+            compounds_property_info["pubchem"]["MolecularWeight"] = ""
+        if "HBondDonorCount" not in compounds_property_info["pubchem"]:
+            compounds_property_info["pubchem"]["HBondDonorCount"] = ""
+        if "HBondAcceptorCount" not in compounds_property_info["pubchem"]:
+            compounds_property_info["pubchem"]["HBondAcceptorCount"] = ""
         compounds_property_info["svg"] = return_compound_image(compounds_property_info["_id"])
         respone = {"ids": compounds_id_info, "props": compounds_property_info, "biosigs":compounds_binding_sigs, "assays": compounds_assay_info, "synths": compounds_retro_pathways, "desired": return_desired_dynamic_biosignature()}
         return jsonify(respone)
@@ -121,6 +131,14 @@ def summary(inchikey):
         compounds_binding_sigs = return_biosignature(inchikey)
         compounds_retro_pathways = return_askcos_pathways(inchikey)
         print(compounds_id_info)
+        if "MolecularFormula" not in compounds_property_info["pubchem"]:
+            compounds_property_info["pubchem"]["MolecularFormula"] = ""
+        if "MolecularWeight" not in compounds_property_info["pubchem"]:
+            compounds_property_info["pubchem"]["MolecularWeight"] = ""
+        if "HBondDonorCount" not in compounds_property_info["pubchem"]:
+            compounds_property_info["pubchem"]["HBondDonorCount"] = ""
+        if "HBondAcceptorCount" not in compounds_property_info["pubchem"]:
+            compounds_property_info["pubchem"]["HBondAcceptorCount"] = ""
         # These are the same as in the search method except one layer of the lists are removed because there is only one compound now
         return render_template("summary.html",name=compounds_id_info[0]["name"].capitalize(),smiles=compounds_id_info[0]["smiles"],inchi=compounds_id_info[0]["inchi"],molformula=render_mol_formula(compounds_property_info["pubchem"]["MolecularFormula"]),molwt=compounds_property_info["pubchem"]["MolecularWeight"],hdc=compounds_property_info["pubchem"]["HBondDonorCount"],hac=compounds_property_info["pubchem"]["HBondAcceptorCount"],logp=compounds_property_info["rdkit"]["MolLogP"],inchikey=inchikey), 200
     elif request.method == 'POST':
@@ -137,6 +155,13 @@ def contact():
     else:
         return "<pre>" + "Request method not supported" + "</pre>", 400
 
+@app.route('/rest/properties/<inchikey>', methods=['GET', 'POST'])
+def rest_properties(inchikey):
+    comp = Properties.objects().with_id(inchikey)
+    if comp is not None:
+        return "<pre>" + dumps(loads(comp.to_json()), indent=2) + "</pre>"
+    else:
+        abort(404)
 #---------------------------------------------------
 #----------------- Login Manager -------------------
 #---------------------------------------------------

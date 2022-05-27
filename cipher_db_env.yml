@@ -1,11 +1,10 @@
-name: cipher
 channels:
-- rdkit
-- pytorch
-- conda-forge
-- psi4
 - ram-compbio
+- pytorch
+- rdkit
 - anaconda
+- psi4
+- conda-forge
 - defaults
 dependencies:
 - _libgcc_mutex=0.1=main

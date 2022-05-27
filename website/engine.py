@@ -276,15 +276,15 @@ def return_biosig_knn():
         NMDAR: 0.3788042173560422
     }
     desire_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
-        DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
+        MU: "partial agonism",
+        KAPPA: "antagonism",
+        DELTA: "antagonism",
+        NOCICEPTIN: "agonism",
+        DRD2: "partial agonism",
+        D2LDR: "agonism",
+        DRD3: "agonism",
+        AMPAR: "antagonism",
+        NMDAR: "agonism"
     }
 
     desired_tuple = (desired_inchikey, desired_binding, desire_moa)
@@ -304,15 +304,15 @@ def return_biosig_knn():
         NMDAR: 0.3743107866991079
     }
     rank_1_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
+        MU: "agonism",
+        KAPPA: "agonism",
+        DELTA: "agonism",
+        NOCICEPTIN: "partial agonism",
         DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
+        D2LDR: "agonism",
+        DRD3: "agonism",
+        AMPAR: "antagonism",
+        NMDAR: "antagonism"
     }
 
     rank_tuple_list.append((rank_1_inchikey, rank_1_binding, rank_1_moa))
@@ -330,15 +330,15 @@ def return_biosig_knn():
         NMDAR: 0.3751305758313058
     }
     rank_2_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
+        MU: "agonism",
+        KAPPA: "agonism",
+        DELTA: "agonism",
+        NOCICEPTIN: "partial agonism",
         DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
+        D2LDR: "partial agonism",
+        DRD3: "agonism",
+        AMPAR: "antagonism",
+        NMDAR: "antagonism"
     }
 
     rank_tuple_list.append((rank_2_inchikey, rank_2_binding, rank_2_moa))
@@ -356,15 +356,15 @@ def return_biosig_knn():
         NMDAR: 0.3795746958637469
     }
     rank_3_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
+        MU: "agonism",
+        KAPPA: "agonism",
+        DELTA: "partial agonism",
+        NOCICEPTIN: "partial agonism",
         DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
+        D2LDR: "partial agonism",
+        DRD3: "agonism",
+        AMPAR: "antagonism",
+        NMDAR: "antagonism"
     }
 
     rank_tuple_list.append((rank_3_inchikey, rank_3_binding, rank_3_moa))
@@ -382,15 +382,15 @@ def return_biosig_knn():
         NMDAR:0.36647039740470394
     }
     rank_4_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
+        MU: "agonism",
+        KAPPA: "partial agonism",
+        DELTA: "agonism",
+        NOCICEPTIN: "partial agonism",
         DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
+        D2LDR: "partial agonism",
+        DRD3: "agonism",
+        AMPAR: "antagonism",
+        NMDAR: "antagonism"
     }
 
     rank_tuple_list.append((rank_4_inchikey, rank_4_binding, rank_4_moa))
@@ -404,19 +404,19 @@ def return_biosig_knn():
         DRD2: 0.7295855636658556,
         D2LDR: 0.6596253041362531,
         DRD3: 0.6596253041362531,
-        AMPAR: 1.0020004866180048,
+        AMPAR: 0.999,
         NMDAR: 0.3627227899432279 
     }
     rank_5_moa = {
-        MU: "unknown",
-        KAPPA: "unknown",
-        DELTA: "unknown",
-        NOCICEPTIN: "unknown",
+        MU: "agonism",
+        KAPPA: "agonism",
+        DELTA: "agonism",
+        NOCICEPTIN: "partial agonism",
         DRD2: "unknown",
-        D2LDR: "unknown",
-        DRD3: "unknown",
-        AMPAR: "unknown",
-        NMDAR: "unknown"
+        D2LDR: "partial agonism",
+        DRD3: "agonism",
+        AMPAR: "antagonism",
+        NMDAR: "antagonism"
     }
 
     rank_tuple_list.append((rank_5_inchikey, rank_5_binding, rank_5_moa))
