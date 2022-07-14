@@ -1,7 +1,7 @@
 import mongoengine as me
 import datetime
 
-from module_identifiers.docs.docs import (
+from cipher_identifiers.docs.docs import (
     validate_smiles,
     check_inchikey_in_compounds,
     check_mid_in_models,
@@ -9,7 +9,7 @@ from module_identifiers.docs.docs import (
     check_bsid_in_binding_sites,
 )
 
-from module_identifiers.docs.docs import Compounds
+from cipher_identifiers.docs.docs import Compounds
 
 
 class Pubchem(me.EmbeddedDocument):
@@ -69,12 +69,13 @@ class RDKit(me.EmbeddedDocument):
     NumHAcceptors = me.IntField()
     NumHDonors = me.IntField()
     NumHeteroatoms = me.IntField()
-    NumRotateableBonds = me.IntField()
+    NumRotatableBonds = me.IntField()
     RingCount = me.IntField()
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
 
 class Properties(me.Document):
     inchikey = me.StringField(required=True, primary_key=True, validation=check_inchikey_in_compounds)
+    smiles = me.StringField(required=True, validation=validate_smiles)
     pubchem = me.EmbeddedDocumentField(Pubchem)
     rdkit = me.EmbeddedDocumentField(RDKit)

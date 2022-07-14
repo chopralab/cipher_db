@@ -2,7 +2,7 @@ import mongoengine as me
 import datetime
 import shortuuid
 from rdkit import Chem
-
+import shortuuid
 
 def validate_smiles(val):
     try:
@@ -16,7 +16,7 @@ class Compounds(me.Document):
     name = me.StringField(default="")
     smiles = me.StringField(required=True, validation=validate_smiles)
     inchi = me.StringField(required=True)
-    cid = me.IntField(default=-1)
+    cid = me.StringField(default="")
     iupac = me.StringField(default="")
     synonyms = me.ListField(me.StringField(), default = [])
     image = me.FileField()

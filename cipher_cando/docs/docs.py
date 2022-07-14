@@ -1,9 +1,11 @@
 import mongoengine as me
+
 import sys
 import datetime
 import shortuuid
 
 sys.path.append("../../")
+
 from cipher_identifiers.docs.docs import (
     validate_smiles,
     check_inchikey_in_compounds,

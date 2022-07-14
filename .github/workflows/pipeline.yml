@@ -33,7 +33,7 @@ jobs:
           
       - name: deploy cloud function
         id: deploy-background-function
-        uses: google-github-actions/deploy-cloud-functions@v0.1.0
+        uses: google-github-actions/deploy-cloud-functions@v0.9.0
         with:
           name: bindToGenTrigger
           runtime: python38
@@ -42,11 +42,11 @@ jobs:
           source_dir: scheduledTriggers/bindToGenTrigger
           event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
           event_trigger_resource: projects/aspire-challenge/topics/BindToGenScheduler
-        continue-on-error: true
+#         continue-on-error: true
           
       - name: deploy cloud function
         id: deploy-background-function2
-        uses: google-github-actions/deploy-cloud-functions@v0.1.0
+        uses: google-github-actions/deploy-cloud-functions@v0.9.0
         with:
           name: threeNearestNeigh
           runtime: python37
@@ -55,6 +55,6 @@ jobs:
           source_dir: scheduledTriggers/threeNearestNeigh
           event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
           event_trigger_resource: projects/aspire-challenge/topics/BindToGenScheduler
-        continue-on-error: true
+#         continue-on-error: true
           
         

@@ -45,6 +45,7 @@ class Retrosynthesis(me.Document):
     inchikey = me.StringField(primary_key=True)
     smiles = me.StringField()
     trees = me.EmbeddedDocumentListField(SyntheticTree)
+    task_id = me.StringField()
 
 
 class Difficulty(me.Document):

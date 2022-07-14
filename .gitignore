@@ -152,12 +152,16 @@ test/*
 /utils/secret_key.txt
 /utils/mongo_uri_env.sh
 
-/data/OPIOID_RECEPTORS_PUBCHEM/*
-/data/DESI/*
-/data/CHEMBL/*
+cipher_assays/data/PUBCHEM/*
+cipher_assays/data/DESI/*
+cipher_assays/data/CHEMBL/*
+
+cipher_assays/data/*
+cipher_cando/data/*
 
 *.png
 *.txt
 *.gz
 *.pkl
 *.toml
+*.svg
