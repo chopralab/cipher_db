@@ -18,6 +18,8 @@ class Compounds(me.Document):
     inchi = me.StringField(required=True)
     cid = me.IntField(default=-1)
     iupac = me.StringField(default="")
+    synonyms = me.ListField(me.StringField(), default = [])
+    image = me.FileField()
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
 
