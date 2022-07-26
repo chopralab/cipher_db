@@ -1,5 +1,6 @@
 import mongoengine as me
 import datetime
+import shortuuid
 from rdkit import Chem
 import shortuuid
 
@@ -41,9 +42,18 @@ class Models(me.Document):
     # Cipher MID
     cipher_mid = me.StringField(required=True, primary_key=True)
     source = me.StringField(required=True)
-    parameters = me.StringField(default="\{\}")
+    parameters = me.DictField(default="\{\}")
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
+def gen_unique_model_id():
+    su = shortuuid.ShortUUID(alphabet="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    assigned = False
+    while not assigned:
+        rand_id = su.random(length=6)
+        try:
+            Models.objects.with_id(rand_id).count()
+        except:
+            return rand_id
 
 def check_mid_in_models(val):
     if Models.objects.with_id(val) is None:
@@ -65,7 +75,7 @@ class Biomolecules(me.Document):
     pdb_id = me.StringField(default="")
     chain_id = me.StringField(default="")
     uniprot_id = me.StringField(default="")
-    sequence = me.StringField(default="")
+    #sequence = me.StringField(required=True)
     # TODO: Check to ensure it is in the database
     cipher_mid = me.StringField(required=True, validation=check_mid_in_models)
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
@@ -75,7 +85,9 @@ def gen_unique_biomol_id():
     assigned = False
     while not assigned:
         rand_id = su.random(length=6)
-        if Biomolecules.objects.with_id(rand_id) is None:
+        try:
+            Bimolecules.objects.with_id(rand_id).count()
+        except:
             return rand_id
 
 def check_bmid_in_biomolecules(val):
@@ -83,10 +95,11 @@ def check_bmid_in_biomolecules(val):
         raise me.ValidationError("BMID not registered in biomolecules collection")
 
 
-class Binding_Sites(me.Document):
+class Binding_sites(me.Document):
     # Chiper BSID
     cipher_bsid = me.StringField(required=True, primary_key=True)
     cipher_bmid = me.StringField(required=True, validation=check_bmid_in_biomolecules)
+    template_id = me.StringField(default="")
     template_pdb_id = me.StringField(default="")
     template_chain_id = me.StringField(default="")
     residue = me.StringField(default="")
@@ -94,9 +107,18 @@ class Binding_Sites(me.Document):
     coordinates = me.StringField(default="")
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
+def gen_unique_bindingsite_id():
+    su = shortuuid.ShortUUID(alphabet="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    assigned = False
+    while not assigned:
+        rand_id = su.random(length=6)
+        try:
+            Binding_sites.objects.with_id(rand_id).count()
+        except:
+            return rand_id
 
 def check_bsid_in_binding_sites(val):
-    if Binding_Sites.objects.with_id(val) is None:
+    if Binding_sites.objects.with_id(val) is None:
         raise me.ValidationError("BSID not registered in binding sites collection")
 
 
