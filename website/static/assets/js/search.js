@@ -168,25 +168,25 @@ function renderBiosig(cmpdName,inchikey,cmpdBiosig,desired){
           ranges: [{
               from: 0,
               to: 1,
-              name: 'Partial agonism',
+              name: 'Partial agonism (0-1)',
               color: '#00A100'
             },
             {
               from: 1,
               to: 2,
-              name: 'Agonism',
+              name: 'Agonism (1-2)',
               color: '#128FD9'
             },
             {
               from: 2,
               to: 3,
-              name: 'Antagonism',
+              name: 'Antagonism (2-3)',
               color: '#FFB200'
             },
             {
               from: 3,
               to: 4,
-              name: 'Unknown effect',
+              name: 'Unknown effect (3-4)',
               color: '#050505'
             },
             {
@@ -214,7 +214,7 @@ function renderBiosig(cmpdName,inchikey,cmpdBiosig,desired){
          axisTicks: {
             show: true
          },
-  tickAmount: 9,
+  tickAmount: 0,
   range: 9,
   labels: {
     show: true,
