@@ -2,6 +2,71 @@
 
 The CIPHER Database is a semi-autonomous information system designed to facilitate the discovery and synthesis of novel, non-addictive opioids. CIPHER is designed to mine and calculate chemical descriptors for novel compounds added to the database in an automated manner, calculate an interaction signature for compounds using the CANDOCK module, attempt to find a retrosynthetic pathway for compounds using the ASKCOS module, and use this information determine an optimum opioid binding profile for both efficacy and non-additivity. CIPHER is also designed to directly interface with any analytical instrument which is connected to the internet and can run a script in any language which can make a POST request to a URL. See the instrumental setup guide on how to connect an instrument to the database. The final major feature of CIPHER is integration of generative models which can use database information to design novel opioid-like compounds based on the current non-addictive opioid profile in the database.
 
+## [Overview](#overview)
+
+1. Modules
+
+    The CIPHER Database contains a series of modules to add chemically relevant data in an autonomous manner. To learn more about an individual module please see its README file which is linked below:
+
+    - ASKCOS: Module for machine learning based retrosynthetic pathway prediction
+    - Assays: Module for direct instrumental integration for immediate HT assay addition  
+    - CANDO: Module for automated calculation of interaction signatures
+    - Identifiers: Module for tracking basic identifying information on chemically relevant information
+    - ORD: Module for interacting with the Open Reaction Database (ORD)
+    - Properties: Module for automated data mining and calculation of various chemical properties 
+
+2. General
+    - Database Collections
+    - Trigger Usage - Database
+    - Trigger Usage - Scheduled
+    - Identifier Usage
+
+2. Setup
+    - Requirements
+    - Installation
+    - Database Deployment
+        - Database Setup - Cloud Hosted
+        - Database Setup - Locally Hosted
+    - Trigger Deployment - Database
+    - Trigger Deployment - Scheduled
+
+3. Modifications
+    - Modifying a Database Collection
+    - Modifying an Identification System
+
+4. Addition
+    - Adding a Module
+
+## [General](#general)
+
+Below is general information about the technical workings of the CIPHER database, designed to give a brief overview of how the CIPHER database is structured and functions.
+
+### [Database Collections](#database-collections)
+
+The CIPHER database is currently implemented using Mongo DB, a powerful non-relational database architecture. Mongo DB operates using a series of user defined collections, each of which has a unique document structure. The current implementation of the CIPHER database contains the following collections, denoted - Collection Name (`collection_name_in_database`):
+
+- Assays (`assays`)
+- Binding (`binding`)
+- Binding Sites (`binding_sites`)
+- Biomolecules (`biomolecules`)
+- CANDO (`cando`)
+- Compounds (`compounds`)
+- Synthetic Complexity Metrics (`difficulty`)
+- External Databases (`external_database`)
+- Ligands (`ligands`)
+- Models (`models`)
+- ORD (`ord`)
+- Properties (`properties`)
+- ASKCOS (`retrosynthesis`)
+- Substances (`substances`)
+- Users (`users`)
+
+### [Trigger Usage - Database](#trigger-usage---database)
+
+### [Trigger Usage - Scheduled](#trigger-usage---scheduled)
+
+### [Identifier Usage](#identifier-usage)
+
 ## [Setup](#setup)
 
 The following guide will show you the basics of how to set up the cipher database on a local computer or a cloud hosted machine. Additional instructions are provided for modifying the functionality of the database to account for different drug discovery project. 
@@ -47,6 +112,8 @@ export MONGO_URI='(URI for Development Database)'
 export TESTING_URI='(URI for Testing Database)'
 ```
 
+**Note: This script should be run with the `source` command if not running the corresponding python scripts in the same bash script as not doing so would only assign the environment variables in the subshell**
+
 From here, your database should be appropriately set up and ready to use.
 
 #### [Database Setup - Locally Hosted](#database-setup---locally-hosted)
@@ -83,7 +150,7 @@ While database triggers do an excellent job of keeping the database up to date w
 
 ## [Modifications](#modifications)
 
-### [Database Collections](#database-collections)
+### [Modifying a Database Collections](#modifying-a-database-collections)
 
 While the main driver for accessing MongoDB database information in Python is PyMongo, this project mainly uses an extension of PyMongo called MongoEngine. MongoEngine allows for database collection documents to be defined via Python classes. More information on how MongoEngine is used can be found [here](https://docs.mongoengine.org/index.html). For example, below is a segment of the `docs.py` file which has the MongoEngine document class for compound identification information.
 
@@ -101,3 +168,18 @@ class Compounds(me.Document):
 ```
 
 If you wish to record additional information for a specific collection or you wish to remove recorded information, you can add and remove fields from the document. **Note that if you add a required field or remove a field which has its values present in the database you may have to update documents preexisting in the database to reflect these changes**. To add a record, simply add the record name as a variable assignment and then assign the variable to a [MongoEngine field object](https://docs.mongoengine.org/guide/defining-documents.html#fields).
+
+### [Modifying an Identification System](#modifying-an-identification-system)
+
+The CIPHER database uses a basic 6-character identification system for several of its document typos (assays, biomolecules, reactions, etc.). This method is standard across these documents and it functions by generating a random 
+
+If you would like to introduce a custom identification system for these document types, go the the corresponding `docs.py` file for the module and modify the corresponding `gen_unique_[collection]_id()` method. 
+
+## [Adding a Module](#adding-a-module)
+
+Due to the flexibility of Mongo DB documents and the structure of CIPHER database code, it is relatively simple to add a module to CIPHER. Below is a step by step guide which will walk you through the process:
+
+### [Setting up the Module Source](#setting-up-the-module-source)
+
+1. Create a new folder in the home directory of the CIPHER git repo named `cipher_[module]`, with three subdirectories: `docs`, `triggers`, and `utils`. 
+2. If you module is a package, add your module to the Conda environment and update the YAML file

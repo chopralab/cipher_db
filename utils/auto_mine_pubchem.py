@@ -138,7 +138,7 @@ class PubChem_Miner():
             print(input)
             return None
 
-        if data_type is 'property':
+        if data_type == 'property':
             if isinstance(data, list):
                 # dcopy = 'property/'
                 data = 'property/' + ','.join(
@@ -200,7 +200,7 @@ def check_args():
        raise ArgumentError("Infile not found (type --help for more information)")
 
     if args.url is False:
-        if args.outtype is 'JSONP' and args.callback is None:
+        if args.outtype == 'JSONP' and args.callback is None:
             warnings.warn("Output type JSONP is used with no callback type specified, default \"callback\" will be used")
             num_warnings += 1
         if args.data_property is not None and len(args.data_property.split(",")) > 1 and args.outtype == 'TXT':
