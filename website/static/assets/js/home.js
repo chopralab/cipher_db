@@ -21,14 +21,6 @@ function getList(){
 
 getList();
 
-function generateData(cols,bounds){
-    let vals = [];
-    for(let i = 0; i < cols; i++){
-        vals.push(Math.random() * (bounds.max - bounds.min) + bounds.min);
-    }
-    return vals;
-}
-
 function renderBiosigs(desired, top){
     let desList = [];
     let t1 = [];
