@@ -164,10 +164,47 @@ This folder contains the HTML templates for the web application.
 - `home.html`: Homepage as shown in the website guide
 - `search.html`: Search page as shown in the website guide
 - `summary.html`: Summary page as shown in the website guide
+- `add.html`: Add page as shown in the website guide
 
-### `static/assets/js/*.js` - Javascript File for Website Frontend
+### `static/assets/js/*.js` - Javascript Files for Website Frontend
 
-Need Brennan's help with this one ...
+This folder contains the Javascpript files for the web application.
+
+- `home.js`: Retrieves the desired biosignature and top 5 most similar biosignatures from the backend. These are then rendered in an interactive heatmap-like figure on the home page. An overview of the methods are given below:
+
+| Method | Arguments | Description |
+| ------ | --------- | ----------- |
+| `getList()`| `None` | Retrieves biosignatures from the backend and calls `renderResults()` |
+| `renderBiosigs()` | `desired`,   `top` | Uses the ApexCharts library to render the interactive biosignature figure with the `desired` biosignature and the `top` 5 similar biosignatures. |
+| `renderResults()` | `results`| Formats backend results to allow for proper rendering. Calls `renderBiosigs()`  |
+
+- `search.js`: Manages communication between the frontend and backend on the search page. Retrieves results from the backend and renders them for the user. An overview of the methods are given below:
+
+| Method | Arguments | Description |
+| ------ | --------- | ----------- |
+| `capitalizeFirstLetter()` | `string` | Capitalizes the first letter of the argument and returns the result. Used when rendering compound names retrieved from the backend. |
+| `search()` | `None` | Performs a search request with the term currently entered in the search bar. Calls `renderResults()` with the response provided by the backend. |
+| `load()` | `query` | Renders a loading animation while waiting for `search()` to finish. |
+| `displayToggle()`| `cmpdName`, `toggle` | Manages which content is displayed in the snapshot view under a given search result corresponding to `cmpdName`. | 
+| `renderBiosig()` | `cmpdName`, `inchikey`, `cmpdBiosig`, `desired` | Renders the biosignature of a given search result corresponding to `inchikey`. Renders the `desired` biosignature below this for comparison. | 
+|  `renderResults()` | `results` | Manages the rendering of all search results and snapshot views. | 
+
+- `summary.js`: Retrieves summary information from the backend for a given compound and renders this on the `summary.html` page. An overview of the methods are given below:
+
+| Method | Arguments | Description |
+| ------ | --------- | ----------- |
+| `capitalizeFirstLetter()` | `string` | Capitalizes the first letter of the argument and returns the result. Used when rendering compound names retrieved from the backend. |
+| `search()` | `query` | Retrieves compound summary information corresponding to the inchikey provided in the url. Calls `renderResults()` with the response provided by the backend. |
+| `renderBiosig()` | `cmpdName`, `inchikey`, `cmpdBiosig`, `desired` | Renders the biosignature of a given search result corresponding to `inchikey`. Renders the `desired` biosignature below this for comparison. | 
+|  `renderResults()` | `results` | Manages the rendering of current summary information and snapshot views. | 
+
+- `add.js`: Manages communication between the frontend and backend on the `add.html` page. An overview of the methods are given below:
+
+| Method | Arguments | Description |
+| ------ | --------- | ----------- |
+| `add()` | `query` | Submits the SMILES string present in the text input on `add.html` to the backend for processing. |
+
+- `bs-init.js`: Manages tooltips and responsive pages.  
 
 ## Modifications FAQ
 

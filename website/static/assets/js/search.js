@@ -38,7 +38,6 @@ function search(){
 
 const timer = ms => new Promise(res => setTimeout(res, ms))
 async function load(query){
-    //tomorrow basically take the input of the text bar and use this to randomly generate a bunch of results after a brief loading animation and display them
     search();
     var loadingContent = document.createElement('div');
     loadingContent.innerHTML = '<p class="loading" id="loading">Loading.</p>'
@@ -78,7 +77,6 @@ async function load(query){
             document.getElementById("loading").remove();
         }
     }
-    //generateDemo(query);
 }
 
 
@@ -112,15 +110,6 @@ function displayToggle(cmpdName,toggle){
         synth.style.display = "block";
     }
 }
-
-function generateData(cols,bounds){
-        let vals = [];
-        for(let i = 0; i < cols; i++){
-            vals.push(Math.random() * (bounds.max - bounds.min) + bounds.min);
-        }
-        return vals;
-    }
-
 
 function renderBiosig(cmpdName,inchikey,cmpdBiosig,desired){
     bioList = [];
