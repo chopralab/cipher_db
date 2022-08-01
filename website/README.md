@@ -137,15 +137,14 @@ This python file contains the scripts which facilitate interactions between the 
 
 | Method | Arguments | Description |
 | ------ | --------- | ----------- |
-| `return_compound()`| `identifier` | Queries the `Compounds` collection of the database |
-| `return_properties()` | `inchikey` | |
-| `return_biosignature()` | `inchikey`| |
-| `return_assay()` | `inchikey`| |
-| `return_askcos_pathway()` | `inchikey` | |
-| `return_compound_image()` | `inchikey` | |
-| `return_desired_dynamic_biosignature()` | `None` | |
-| `return_biosig_knn()` | `None` | |
-| `testing()` | `None` | |
+| `return_compound()`| `identifier` | Queries the `Compounds` collection of the database for the given identifier and returns JSON formatted information on the selected compounds.|
+| `return_properties()` | `inchikey` | Queries the `Properties` collection of the database for the compound with the given identifier and returns JSON formatted information on the compounds properties as mined from PubChem and calculated via RDKit.|
+| `return_biosignature()` | `inchikey`| Queries the `Assay` collection of the database for literature derived MOA information for the compound. Queries the `CANDO` collection of the database for biosignautre information for the selected compound. Returns the information in python dictionary format.|
+| `return_assay()` | `inchikey`| Queries the `Assay` collection of the database for literature derived assays from PubChem, Drugbank, CHEMBL, and the IUPHAR database, and the DESI MS instrumented used in the ASPIRE project on the specific compound. Returns the Assay information in JSON format.|
+| `return_askcos_pathway()` | `inchikey` | Queries the `Retorsyntheisis` collection of the database for retrosynthetic pathway information on the specified compound. Returns a list of images of the retrosynthetic pathways.|
+| `return_compound_image()` | `inchikey` | Queries the `Compounds` collection of the database for the compound image as calculated using RDKit. Returns the image of the specified compound.|
+| `return_desired_dynamic_biosignature()` | `None` | Returns the desired dynamic biosignature as specified in the aims of the ASPIRE project in python dictionary format.|
+| `return_biosig_knn()` | `None` | Queries the `CANDO` collection of the database for the k nearest neighboring biosignatures of the desired dynamic biosignature. Returns the k nearest biosignatures as a list of python dictionaries.|
 
 
 ### `passenger_wsgi.py` - Runnable Web Application
@@ -170,6 +169,37 @@ This folder contains the HTML templates for the web application.
 
 Need Brennan's help with this one ...
 
-## Modifications
+## Modifications FAQ
 
-Modifications for the web application are relatively simple provided the modifier has basic to intermediate web development experience. Since the modification scope for this project can be very broad, this will provide a general overview of areas where modifications may need to be made if new fields/collections are added to the database and/or new modules are added.
+Modifications for the web application are relatively simple provided the modifier has basic to intermediate web development experience. Since the modification scope for this project can be very broad, this will provide a general overview of areas where modifications may need to be made if new fields/collections are added to the database and/or new modules are added. No website frontend modifications are covered, all modifications are either for the website backend or database.
+
+#### Question
+"I added a new type of identifier I would like be able to search by"
+
+#### Answer
+Go to the `return_compounds()` method of in `engine.py` and include an `elif` statement with the following text (replacing `<identifier_name>`):
+
+```(python)
+elif Compounds.objects(<identifier_name>=identifier).count() > 0:
+  return json.loads(Compounds.objects(<identifier_name>=identifier).to_json())
+```
+
+#### Question
+
+"I want to change the proteins queried in the biosignature"
+
+#### Answer
+
+Go to the `return_biosignature()` method in `engine.py` and modify the `BIOSIG` and `BMIDS` constants to include the name and 6 character biomolecule ID in the appropriate position of the list and dictionary.
+
+#### Question
+
+"I want to include a new data source for MOA information for biosignatures which I have added to the database `Assay` collection"
+
+#### Answer
+
+Go to the `return_biosignature()` method in `engine.py` and add a constant `<DATASOURCE_NAME>` with the name of your data source. Then add a series of `if` statements in the `for` loop formatted in the following manner:
+
+```(python)
+
+```
