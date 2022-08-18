@@ -31,16 +31,12 @@ def compounds_trigger():
             for change in stream:
                 doc = change["fullDocument"]
                 smiles = doc["smiles"]
-                id = change["documentKey"]["_id"]
-                m = Chem.MolFromSmiles(smiles)
-                inchikey = Chem.MolToInchiKey(m)
-                if id != Chem.MolToInchiKey(m):
-                    compounds_coll.delete_one({"_id": id})
+                inchikey = change["documentKey"]["_id"]
                 try:
                     id_compound_from_smiles(smiles, inchikey)
                 except Exception as e:
                     print(e)
-                    compounds_coll.delete_one({"_id": id})
+                    # compounds_coll.delete_one({"_id": inchikey})
     except Exception as e:
         print(e)
 

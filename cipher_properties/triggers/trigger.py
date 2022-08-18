@@ -36,8 +36,9 @@ def properties_trigger():
             for change in stream:
                 doc = change["fullDocument"]
                 smiles = doc["smiles"]
+                inchikey = change["documentKey"]["_id"]
                 try:
-                    insert_properties_from_smiles(smiles)
+                    insert_properties_from_smiles(smiles, inchikey)
                 except Exception as e:
                     print(e)
     except Exception as e:

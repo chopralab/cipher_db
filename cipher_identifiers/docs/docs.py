@@ -15,7 +15,7 @@ class Compounds(me.Document):
     inchikey = me.StringField(required=True, primary_key=True)
     name = me.StringField(default="")
     smiles = me.StringField(required=True, validation=validate_smiles)
-    inchi = me.StringField(required=True)
+    inchi = me.StringField(default="")
     cid = me.StringField(default="")
     iupac = me.StringField(default="")
     synonyms = me.ListField(me.StringField(), default = [])

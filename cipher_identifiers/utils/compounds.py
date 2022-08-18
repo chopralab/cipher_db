@@ -3,7 +3,7 @@ from turtle import update
 import requests
 import json
 from rdkit import Chem, RDLogger
-#from rdkit.Chem import Draw
+from rdkit.Chem import Draw
 from time import sleep
 import os
 import codecs
@@ -36,6 +36,8 @@ from cipher_properties.docs.docs import Properties
 
 def update_image(inchikey):
     comp = Compounds.objects().with_id(inchikey)
+    if os.isdir("../temp/") is False:
+        os.mkdir("../temp/")
     fname = "../temp/"+inchikey+".svg"
     mol = Chem.MolFromSmiles(comp.smiles)
     Draw.MolToFile(mol, fname)
@@ -104,7 +106,7 @@ def get_synonyms_from_inchikey(inchikey):
             + str(response.status_code)
         )
 
-def id_compound_from_smiles(smiles):
+def id_compound_from_smiles(smiles, inchikey):
     comp = Compounds()
     try:
         m = Chem.MolFromSmiles(smiles)
@@ -114,11 +116,6 @@ def id_compound_from_smiles(smiles):
             + smiles
             + " cannot be converted into a valid molecule"
         )
-
-    inchikey = Chem.MolToInchiKey(m)
-
-    if Compounds.objects.with_id(inchikey) is not None:
-        return False
 
     comp.inchikey = inchikey
     comp.smiles = Chem.MolToSmiles(m, isomericSmiles=False)
@@ -208,10 +205,8 @@ if __name__ == "__main__":
     if args.count:
         print(Compounds.objects().count())
     else:
-        if args.smiles is not None:
-            inchikey = id_compound_from_smiles(smiles=args.smiles)
+        if args.smiles is not None and args.inchikey is not None:
             sleep(1)
             if args.name is not None:
-                comp = Compounds.objects().with_id(inchikey)
-                comp.name = args.name
+                comp = Compounds(inchikey=args.inchikey,name=args.name,smiles=args.smiles)
                 comp.save()
