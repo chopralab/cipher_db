@@ -2,7 +2,9 @@
 
 ## Background
 
-The identifiers module is the core system for recording information on which compounds are present in the database. All compounds referenced in any collection of the database have their record present in one or more of the collections the managed by the identifiers module. Additionally, all models and external databases used in the project have records present in one of the collections managed by the identifiers module. The collections which are managed by the module are listed below with a short background describing their purpose:
+The identifiers module is the core system for recording information on which compounds are present in the database. All compounds referenced in any collection of the database have their record present in one or more of the collections the managed by the identifiers module. Additionally, all models and external databases used in the project have records present in one of the collections managed by the identifiers module. 
+
+## Document Structure
 
 `compounds`: Stores identifying information on chemical compounds. This collection is indexed by InChi Key. 
 
@@ -74,4 +76,29 @@ The identifiers module is the core system for recording information on which com
 
 ## Installation and Setup
 
-There are no specific setup instructions for the identifiers module. Make sure you have a Conda environment active with 
+There are no specific setup instructions for the identifiers module. Make sure you have a Conda environment active with packages in the `cipher_db_env.yml` added to the environment. 
+
+## Running the Compounds Trigger
+
+To run the trigger, simply run the `trigger.py` python script with the Conda environment active
+
+## Compounds Trigger Functionality
+
+The trigger functions in the following manner
+1. A compound is added to the database via scripting, the website, or the REST API
+2. The trigger checks to make sure the provided SMILES string is valid
+3. The trigger checks the `Compounds` collection of the database to ensure the compound which is added is not already present in the database
+4. The trigger adds the compound to the `Compounds` database
+5. The trigger runs a series of supplemental scripts which:
+    - Calculate the InChI, InChI Key, and molecular formula using RDKit
+    - Mine PubChem for identifying information such as common name, synonyms, IUPAC name, etc.
+
+## Other Identifiers
+
+Some of the other identifiers come with scripts to assist in adding information for those identifiers to the database. These scripts have the same general structure but are designed to provide database administrators with a quick way to add identifying information via scripting. An example of script usage for the `models.py` script is shown below. Please refer to the arguments sections of each script to see what command line arguments need to be provided:
+
+```(bash)
+python models.py --mid {your_mid} --source {your_model_source} --parameters {your_model_parameters}
+```
+
+**Note:** The `--testing` parameter adds the information to the database which has its URI provided to the `TESTING_URI` environment variable.
