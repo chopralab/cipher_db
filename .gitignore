@@ -165,3 +165,5 @@ cipher_cando/data/*
 *.pkl
 *.toml
 *.svg
+
+.DS_Store
