@@ -2,7 +2,7 @@
 
 Reduced conditional variational autoencoder for novel chemical generation on a proteomic scale. 
 
-##Background
+## Background
 
 We used the CANDO platform to predict interaction signatures for each compound in a training set against a library of nonredundant protein structures representing the human proteome. The interaction signatures have their dimensionality reduced in an autoencoder, which models the underlying correspondence between protein structures as they behave in the proteome. The reduced signatures are then used as labels for each training compound, which a generative conditional variational autoencoder model learns to reconstruct given a target interaction signature. This pipeline allows us to novel design compounds that modulate interactions on a proteomic scale as desired to generate behaviorally novel therapeutics. More information about implementation and benchmarking may be found [here](https://www.mdpi.com/1424-8247/14/12/1277/htm). 
 
