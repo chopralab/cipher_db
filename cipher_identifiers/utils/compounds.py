@@ -185,6 +185,12 @@ if __name__ == "__main__":
     parser.add_argument("--name", type=str)
     args = parser.parse_args()
 
+
+    LOGIN = open("../../utils/login.txt", "r")
+    USERNAME = LOGIN.readline().replace("\n", "")
+    PASSWORD = LOGIN.readline().replace("\n", "")
+    LOGIN.close()
+
     if args.testing:
         URI = os.environ["TESTING_URI"]
     else:

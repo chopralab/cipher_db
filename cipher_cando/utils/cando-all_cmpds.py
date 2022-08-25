@@ -44,3 +44,4 @@ if __name__ == "__main__":
         inchikey = i.inchikey
         smi = i.smiles
         update_cando(inchikey, smi, "dCxP", "aspire")
+        update_cando(inchikey, smi, "dCxP", "homo_sapien")

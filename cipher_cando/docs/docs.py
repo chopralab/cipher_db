@@ -35,7 +35,7 @@ class Cando(me.Document):
     cipher_bmid = me.StringField(required=True, validation=check_bmid_in_biomolecules)
     cipher_bsid = me.StringField(required=True, validation=check_bsid_in_binding_sites)
     # Can contrain a min and max value, check mongo engine doccumentation
-    interaction_score = me.DecimalField(required=True)
+    interaction_score = me.FloatField(required=True)
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
 
@@ -50,7 +50,7 @@ class Biosignatures(me.Document):
     cipher_mid = me.StringField(required=True, validation=check_mid_in_models)
     description = me.StringField(default="")
     receptors = me.ListField(me.StringField(), required=True, validation=validate_receptor_list)
-    scores = me.ListField(me.DecimalField(), required=True)
+    scores = me.ListField(me.FloatField(), required=True)
     modified = me.DateTimeField(default=datetime.datetime.utcnow)
 
 
@@ -58,7 +58,7 @@ class knn_tuple(me.EmbeddedDocument):
     inchikey = me.StringField(required=True, validation=check_inchikey_in_compounds)
     smiles = me.StringField(required=True, validation=validate_smiles)
     # We can set min and max values here if needed
-    cosine_dist = me.DecimalField(required=True)
+    cosine_dist = me.FloatField(required=True)
     rank = me.IntField(required=True)
 
 
