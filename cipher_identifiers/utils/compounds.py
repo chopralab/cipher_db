@@ -3,7 +3,7 @@ from turtle import update
 import requests
 import json
 from rdkit import Chem, RDLogger
-#from rdkit.Chem import Draw
+from rdkit.Chem import Draw
 from time import sleep
 import os
 import codecs
@@ -187,6 +187,12 @@ if __name__ == "__main__":
     parser.add_argument("--count", action="store_true")
     parser.add_argument("--name", type=str)
     args = parser.parse_args()
+
+
+    LOGIN = open("../../utils/login.txt", "r")
+    USERNAME = LOGIN.readline().replace("\n", "")
+    PASSWORD = LOGIN.readline().replace("\n", "")
+    LOGIN.close()
 
     if args.testing:
         URI = os.environ["TESTING_URI"]

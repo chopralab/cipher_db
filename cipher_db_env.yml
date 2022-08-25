@@ -1,5 +1,4 @@
 channels:
-- ram-compbio
 - pytorch
 - rdkit
 - anaconda
@@ -170,6 +169,5 @@ dependencies:
 - pytorch=1.8.1=py3.7_cuda10.2_cudnn7.6.5_0
 - torchaudio=0.8.1=py37
 - torchvision=0.9.1=py37_cu102
-- cando=2.1=py37h39e3cac_0
 - rdkit=2020.09.1.0=py37hd50e099_1
 
